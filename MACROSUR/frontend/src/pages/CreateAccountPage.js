@@ -18,7 +18,7 @@ function CreateAccountPage({ onGoBack, onLoginSuccess }) {
       <div className="create-account-card">
         <h2 className="create-account-title">Crea tu cuenta</h2>
         <div className="login-logo">
-          <span className="logo-text">R.com</span>
+          <span className="logo-text">MACROSUR</span>
         </div>
         <p className="welcome-text">¡Regístrate y disfruta de nuestros beneficios y una experiencia de compra más rápida y sencilla!</p>
         <form className="create-account-form" onSubmit={handleCreateAccount}>

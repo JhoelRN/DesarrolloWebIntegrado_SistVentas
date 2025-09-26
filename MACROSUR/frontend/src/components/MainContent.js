@@ -37,29 +37,6 @@ function MainContent() {
         <span className="promo-text">los mejores días para llevártelo todo</span>
       </section>
 
-      {/* Sección de "Descubre más para ti" */}
-      <section className="discover-section">
-        <h3>Descubre más para ti</h3>
-        <div className="discover-grid">
-          <div className="discover-item">
-            <span className="icon">💳</span>
-            <p>Pide tu Tarjeta Rlpley online</p>
-          </div>
-          <div className="discover-item">
-            <span className="icon">💰</span>
-            <p>Rlpley Puntos GO</p>
-          </div>
-          <div className="discover-item">
-            <span className="icon">🚚</span>
-            <p>Pide online un Efectivo Express</p>
-          </div>
-          <div className="discover-item">
-            <span className="icon">🎁</span>
-            <p>Promociones Banco Rlpley</p>
-          </div>
-        </div>
-      </section>
-
       {/* Servicios al cliente */}
       <section className="customer-service-section">
         <h3>Servicios al cliente</h3>

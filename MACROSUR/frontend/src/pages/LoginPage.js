@@ -26,9 +26,9 @@ function LoginPage({ onGoBack, onLogin, onCreateAccountClick }) {
       <div className="login-card">
         <h2 className="login-title">Iniciar sesión</h2>
         <div className="login-logo">
-          <span className="logo-text">R.com</span>
+          <span className="logo-text">MACROSUR</span>
         </div>
-        <p className="welcome-text">¡BIENVENIDO a Rlpley.com!</p>
+        <p className="welcome-text">¡BIENVENIDO a MACROSUR!</p>
         <p className="login-prompt">Ingresa tu usuario y contraseña para iniciar sesión</p>
         <form className="login-form" onSubmit={handleLoginSubmit}>
           <input className="input-field" type="text" placeholder="Correo o DNI*" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -47,7 +47,7 @@ function LoginPage({ onGoBack, onLogin, onCreateAccountClick }) {
           <span className="social-icon"></span> Iniciar sesión con Apple
         </button>
         <p className="signup-prompt">
-          ¿Eres nuevo en Ripley.com? <button onClick={onCreateAccountClick} className="signup-link-button">Crea tu cuenta</button>
+          ¿Eres nuevo en MACROSUR? <button onClick={onCreateAccountClick} className="signup-link-button">Crea tu cuenta</button>
         </p>
         <button onClick={onGoBack} className="back-button">← Volver</button>
       </div>

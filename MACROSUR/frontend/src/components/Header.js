@@ -5,13 +5,9 @@ function Header({ onLoginClick, loggedInUser, onLogout }) {
     <header className="main-header">
       <div className="header-top">
         <div className="logo">
-          <span className="logo-text">R.com</span>
+          <span className="logo-text">MACROSUR</span>
           <button className="menu-btn">≡ Menú</button>
-        </div>
-        <div className="location-section">
-          <span className="location-icon">📍</span>
-          <a href="#">Ingresa tu ubicación</a>
-        </div>
+        </div>        
         <div className="search-bar">
           <input type="text" placeholder="Buscar Productos" />
           <button>🔍</button>
