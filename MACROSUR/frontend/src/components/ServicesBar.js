@@ -2,9 +2,20 @@ import React from 'react';
 
 function ServicesBar() {
   return (
-    <div>
-      {/* Contenido de la barra de servicios */}
-    </div>
+    <section className="services-bar">
+      <div className="service-item">
+        <span className="service-icon">🔍</span>
+        <a href="#">Ver pedido</a>
+      </div>
+      <div className="service-item">
+        <span className="service-icon">❓</span>
+        <a href="#">Ayuda</a>
+      </div>
+      <div className="service-item">
+        <span className="service-icon">🔁</span>
+        <a href="#">Políticas de devolución</a>
+      </div>
+    </section>
   );
 }
 
