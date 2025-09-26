@@ -117,7 +117,7 @@ font-size: 12px;
 }
 
 /* --- Estilos de la página de inicio de sesión --- */
-.login-page-container {
+.login-page-container, .create-account-page-container {
 display: flex;
 justify-content: center;
 align-items: center;
@@ -126,7 +126,7 @@ background-color: var(--light-gray);
 padding: 20px;
 }
 
-.login-card {
+.login-card, .create-account-card {
 background-color: white;
 padding: 40px;
 border-radius: 10px;
@@ -136,7 +136,7 @@ max-width: 400px;
 width: 100%;
 }
 
-.login-title {
+.login-title, .create-account-title {
 font-size: 24px;
 font-weight: bold;
 margin-bottom: 20px;
@@ -161,7 +161,7 @@ color: #666;
 margin-bottom: 20px;
 }
 
-.login-form {
+.login-form, .create-account-form {
 display: flex;
 flex-direction: column;
 gap: 15px;
@@ -180,7 +180,7 @@ text-decoration: none;
 align-self: flex-end;
 }
 
-.login-button {
+.login-button, .create-account-button {
 background-color: var(--primary-color);
 color: white;
 border: none;
@@ -244,10 +244,14 @@ margin-top: 20px;
 font-size: 14px;
 }
 
-.signup-link {
+.signup-link-button {
+background: none;
+border: none;
 color: var(--primary-color);
 text-decoration: none;
 font-weight: bold;
+cursor: pointer;
+padding: 0;
 }
 
 .back-button {
@@ -443,4 +447,29 @@ padding: 10px 20px;
 border-radius: 5px;
 cursor: pointer;
 font-weight: bold;
+}
+
+/* Estilos de la página de creación de cuenta */
+.create-account-form {
+display: flex;
+flex-direction: column;
+gap: 15px;
+text-align: left;
+}
+
+.terms-checkbox {
+display: flex;
+align-items: flex-start;
+gap: 10px;
+font-size: 14px;
+}
+
+.create-account-button {
+background-color: var(--primary-color);
+color: white;
+border: none;
+padding: 12px;
+border-radius: 5px;
+font-weight: bold;
+cursor: pointer;
 }

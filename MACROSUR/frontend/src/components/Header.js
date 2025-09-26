@@ -1,6 +1,6 @@
 import React from 'react';
 
-function Header({ onLoginClick }) {
+function Header({ onLoginClick, loggedInUser, onLogout }) {
   return (
     <header className="main-header">
       <div className="header-top">
@@ -17,10 +17,21 @@ function Header({ onLoginClick }) {
           <button>🔍</button>
         </div>
         <div className="user-actions">
-          <span className="user-text">¡Hola!</span>
-          <button className="login-btn" onClick={onLoginClick}>
-            Iniciar sesión
-          </button>
+          {loggedInUser ? (
+            <>
+              <span className="user-text">¡Hola, {loggedInUser}!</span>
+              <button className="login-btn" onClick={onLogout}>
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="user-text">¡Hola!</span>
+              <button className="login-btn" onClick={onLoginClick}>
+                Iniciar sesión
+              </button>
+            </>
+          )}
           <button className="cart-btn">🛒</button>
         </div>
       </div>
