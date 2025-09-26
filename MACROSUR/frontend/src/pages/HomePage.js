@@ -5,10 +5,10 @@ import MainContent from '../components/MainContent';
 import Footer from '../components/Footer';
 import CookiesBanner from '../components/CookiesBanner';
 
-function HomePage() {
+function HomePage({ onLoginClick }) {
   return (
     <div className="home-page">
-      <Header />
+      <Header onLoginClick={onLoginClick} />
       <ServicesBar />
       <MainContent />
       <Footer />
