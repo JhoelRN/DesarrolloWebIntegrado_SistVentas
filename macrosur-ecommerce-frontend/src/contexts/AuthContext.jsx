@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const [userRole, setUserRole] = useState(null); // CLIENTE, ADMIN, GESTOR
     const [loading, setLoading] = useState(true);
     const logoutTimerRef = useRef(null);
-    const SESSION_TTL = 24 * 60 * 60 * 0.1; // 24 horas por defecto (en ms)
+    const SESSION_TTL = 24 * 60 * 60 * 1000; // 24 horas por defecto (en ms)
 
     useEffect(() => {
         // Lógica para verificar el token en localStorage al cargar la app

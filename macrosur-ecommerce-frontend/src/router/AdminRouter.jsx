@@ -1,15 +1,18 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
-// Importa la página del Dashboard (asumimos que existe un stub en /pages/admin/)
-import DashboardAdminPage from '../pages/admin/DashboardAdminPage'; 
+// Importa las páginas reales del admin
+import DashboardAdminPage from '../pages/admin/DashboardAdminPage';
+import ProductsPage from '../pages/admin/ProductsPage';
+import OrdersPage from '../pages/admin/OrdersPage';
+import UsersPage from '../pages/admin/UsersPage';
+import InventoryPage from '../pages/admin/InventoryPage';
+import PromotionsPage from '../pages/admin/PromotionsPage';
+import ReportsPage from '../pages/admin/ReportsPage';
+import RestockPage from '../pages/admin/RestockPage';
+import ReviewsPage from '../pages/admin/ReviewsPage';
+import ClaimsPage from '../pages/admin/ClaimsPage';
 
-// Stubs para las otras páginas de gestión
-const ProductManagementPage = () => <Container className="mt-4"><h2>Gestión de Productos (CRUD)</h2><p>Aquí se añadirán las tablas y formularios para crear, leer, actualizar y eliminar productos.</p></Container>;
-const OrderManagementPage = () => <Container className="mt-4"><h2>Gestión de Pedidos</h2><p>Listado y detalle de todos los pedidos realizados por los clientes.</p></Container>;
-const UserManagementPage = () => <Container className="mt-4"><h2>Gestión de Usuarios</h2><p>Gestión de clientes y usuarios administradores.</p></Container>;
-const CategoryManagementPage = () => <Container className="mt-4"><h2>Gestión de Categorías</h2><p>CRUD para las categorías y subcategorías de productos.</p></Container>;
-const SettingsPage = () => <Container className="mt-4"><h2>Configuración del Sistema</h2><p>Configuración general, tasas, impuestos y datos de contacto.</p></Container>;
 const NotFound = () => <Container className="mt-4"><h2 className="text-danger">404 | Admin - Ruta No Válida</h2></Container>;
 
 /**
@@ -23,19 +26,23 @@ const AdminRouter = () => {
         {/* Redirección: Si el usuario accede a /admin/, lo redirige a /admin/dashboard */}
         <Route path="/" element={<Navigate to="dashboard" replace />} />
 
-        {/* Rutas principales del panel de administración */}
-        <Route path="/dashboard" element={<DashboardAdminPage />} />
-        
-        {/* Rutas de gestión de contenido */}
-        <Route path="/products" element={<ProductManagementPage />} />
-        <Route path="/categories" element={<CategoryManagementPage />} />
-        
-        {/* Rutas de gestión de operaciones */}
-        <Route path="/orders" element={<OrderManagementPage />} />
-        <Route path="/users" element={<UserManagementPage />} />
-        
-        {/* Configuración */}
-        <Route path="/settings" element={<SettingsPage />} />
+  {/* Rutas principales del panel de administración */}
+  <Route path="/dashboard" element={<DashboardAdminPage />} />
+
+  {/* Rutas de gestión de contenido */}
+  <Route path="/products" element={<ProductsPage />} />
+  <Route path="/promotions" element={<PromotionsPage />} />
+
+  {/* Rutas de gestión de operaciones */}
+  <Route path="/orders" element={<OrdersPage />} />
+  <Route path="/users" element={<UsersPage />} />
+  <Route path="/inventory" element={<InventoryPage />} />
+  <Route path="/restock" element={<RestockPage />} />
+  <Route path="/reviews" element={<ReviewsPage />} />
+  <Route path="/claims" element={<ClaimsPage />} />
+
+  {/* Informes y configuración */}
+  <Route path="/reports" element={<ReportsPage />} />
         
         {/* Fallback dentro del panel de admin */}
         <Route path="*" element={<NotFound />} />
