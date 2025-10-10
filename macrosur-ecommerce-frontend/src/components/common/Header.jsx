@@ -85,9 +85,15 @@ const Header = () => {
                                     </Dropdown.Menu>
                                 </Dropdown>
                             ) : (
-                                <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
-                                    Iniciar Sesión
-                                </Nav.Link>
+                                <>
+                                    <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
+                                        Iniciar Sesión
+                                    </Nav.Link>
+                                    {/* Enlace visible al login de Admin (distinto al login de clientes) */}
+                                    <Nav.Link as={Link} to="/admin/login" className="btn btn-outline-danger me-2 rounded-pill px-3 d-none d-lg-inline">
+                                        Admin Login
+                                    </Nav.Link>
+                                </>
                             )}
                             
                             {/* Icono de Carrito */}

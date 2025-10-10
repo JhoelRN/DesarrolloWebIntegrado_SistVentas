@@ -21,21 +21,28 @@ import LayoutCliente from '../components/layout/LayoutCliente'; // Layout con He
  * Verifica si el usuario está autenticado Y si tiene el rol requerido.
  */
 const ProtectedRoute = ({ children, requiredRole }) => {
-    const { isAuthenticated, userRole, loading } = useAuth();
+  const { isAuthenticated, userRole, loading } = useAuth();
     
-    if (loading) return <div>Cargando autenticación...</div>; // O un Spinner de Bootstrap
+  if (loading) return <div>Cargando autenticación...</div>; // O un Spinner de Bootstrap
 
-    // Si no está autenticado, redirigir al login
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+  // Si no está autenticado, redirigir al login correspondiente
+  if (!isAuthenticated) {
+    // Si la ruta requiere rol ADMIN, redirige al login de admin
+    if (requiredRole === 'ADMIN') return <Navigate to="/admin/login" replace />;
+    // Por defecto redirige al login del cliente
+    return <Navigate to="/login" replace />;
+  }
+
+  // Si está autenticado pero el rol no coincide (ej: Cliente intentando acceder al Admin)
+  if (requiredRole) {
+    // Permitimos que requiredRole sea un string o un array de strings
+    const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!allowed.includes(userRole)) {
+      return <Navigate to="/" replace />;
     }
+  }
 
-    // Si está autenticado pero el rol no coincide (ej: Cliente intentando acceder al Admin)
-    if (requiredRole && userRole !== requiredRole) {
-        return <Navigate to="/" replace />;
-    }
-
-    return children;
+  return children;
 };
 
 const AppRouter = () => {
