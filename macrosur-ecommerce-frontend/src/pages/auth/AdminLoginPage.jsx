@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const AdminLoginPage = () => {
@@ -59,10 +59,16 @@ const AdminLoginPage = () => {
                             />
                         </Form.Group>
 
-                        <Button variant="danger" type="submit" className="w-100">
+                        <Button variant="danger" type="submit" className="w-100 mb-3">
                             Ingresar al Sistema
                         </Button>
                     </Form>
+                    
+                    <div className="text-center">
+                        <Button variant="outline-secondary" size="sm" as={Link} to="/">
+                            ← Volver al sitio principal
+                        </Button>
+                    </div>
                 </Card.Body>
             </Card>
         </Container>
