@@ -4,10 +4,13 @@ import { Container } from 'react-bootstrap';
 // Importa las páginas reales del admin
 import DashboardAdminPage from '../pages/admin/DashboardAdminPage';
 import ProductsPage from '../pages/admin/ProductsPage';
+import CategoriesPage from '../pages/admin/CategoriesPage';
 import OrdersPage from '../pages/admin/OrdersPage';
+import CustomersPage from '../pages/admin/CustomersPage';
 import UsersPage from '../pages/admin/UsersPage';
 import InventoryPage from '../pages/admin/InventoryPage';
 import PromotionsPage from '../pages/admin/PromotionsPage';
+import LogisticsPage from '../pages/admin/LogisticsPage';
 import ReportsPage from '../pages/admin/ReportsPage';
 import RestockPage from '../pages/admin/RestockPage';
 import ReviewsPage from '../pages/admin/ReviewsPage';
@@ -29,22 +32,25 @@ const AdminRouter = () => {
   {/* Rutas principales del panel de administración */}
   <Route path="/dashboard" element={<DashboardAdminPage />} />
 
-  {/* Rutas de gestión de contenido */}
-  <Route path="/products" element={<ProductsPage />} />
-  <Route path="/promotions" element={<PromotionsPage />} />
+        {/* Rutas de gestión de catálogo */}
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
 
-  {/* Rutas de gestión de operaciones */}
-  <Route path="/orders" element={<OrdersPage />} />
-  <Route path="/users" element={<UsersPage />} />
-  <Route path="/inventory" element={<InventoryPage />} />
-  <Route path="/restock" element={<RestockPage />} />
-  <Route path="/reviews" element={<ReviewsPage />} />
-  <Route path="/claims" element={<ClaimsPage />} />
+        {/* Rutas de gestión de ventas */}
+        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/promotions" element={<PromotionsPage />} />
+        <Route path="/customers" element={<CustomersPage />} />
 
-  {/* Informes y configuración */}
-  <Route path="/reports" element={<ReportsPage />} />
-        
-        {/* Fallback dentro del panel de admin */}
+        {/* Rutas de logística */}
+        <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/restock" element={<RestockPage />} />
+        <Route path="/logistics" element={<LogisticsPage />} />
+
+        {/* Rutas de administración */}
+        <Route path="/users" element={<UsersPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
+        <Route path="/claims" element={<ClaimsPage />} />
+        <Route path="/reports" element={<ReportsPage />} />        {/* Fallback dentro del panel de admin */}
         <Route path="*" element={<NotFound />} />
     </Routes>
   );
