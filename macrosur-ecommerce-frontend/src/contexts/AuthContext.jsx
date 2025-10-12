@@ -18,16 +18,47 @@ export const AuthProvider = ({ children }) => {
         // Lógica para verificar el token en localStorage al cargar la app
         const storedToken = localStorage.getItem('authToken');
         if (storedToken) {
-            // Simular validación asíncrona del token (p. ej. llamada a /auth/validate)
+            // Validar token real con el backend
             const validate = async () => {
                 try {
-                    // Simulación: esperar 300ms y establecer usuario por defecto
-                    await new Promise(res => setTimeout(res, 300));
-                    // En desarrollo podemos inferir role desde el token string (p. ej. 'admin-token')
-                    const decodedRole = storedToken === 'admin-token' ? 'ADMIN' : 'CLIENTE';
-                    setUser({ id: decodedRole === 'ADMIN' ? 1 : 101, name: decodedRole === 'ADMIN' ? 'Admin' : 'Cliente' });
-                    setUserRole(decodedRole);
-                    setIsAuthenticated(true);
+                    // Intentar validar el token con el backend
+                    const isValid = await authApi.validateToken(storedToken);
+                    if (isValid) {
+                        // Obtener datos del usuario desde el backend
+                        try {
+                            const res = await fetch('http://localhost:8081/api/auth/me', {
+                                headers: { 'Authorization': `Bearer ${storedToken}` }
+                            });
+                            if (res.ok) {
+                                const userData = await res.json();
+                                const userInfo = {
+                                    id: userData.id,
+                                    name: userData.nombre + ' ' + userData.apellido
+                                };
+                                const role = 'ADMIN'; // Mapear rolId a nombre después
+                                
+                                setUser(userInfo);
+                                setUserRole(role);
+                                setIsAuthenticated(true);
+                            } else {
+                                throw new Error('No se pudo obtener datos del usuario');
+                            }
+                        } catch (err) {
+                            console.error('Error obteniendo datos del usuario:', err);
+                            // Fallback con datos básicos del token
+                            const payload = JSON.parse(atob(storedToken.split('.')[1]));
+                            setUser({ id: 1, name: payload.sub || 'Admin' });
+                            setUserRole('ADMIN');
+                            setIsAuthenticated(true);
+                        }
+                    } else {
+                        // Token inválido
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('authTokenExpiry');
+                        setUser(null);
+                        setUserRole(null);
+                        setIsAuthenticated(false);
+                    }
                     // Si hay un expiry guardado y válido, programar cierre automático
                     const rawExpiry = localStorage.getItem('authTokenExpiry');
                     const expiry = rawExpiry ? parseInt(rawExpiry, 10) : Date.now() + SESSION_TTL;

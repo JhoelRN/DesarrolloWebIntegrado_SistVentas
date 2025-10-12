@@ -1,29 +1,84 @@
+const API_BASE = 'http://localhost:8081/api';
+
 export const login = async (email, password, isAdmin) => {
-    // --- STUB (entorno local / pruebas) ---
-    // Simulación de validación simple para desarrollo local.
-    if (isAdmin) {
-        if (email === 'admin@macrosur.com' && password === 'admin') {
-            return { token: 'admin-token', userId: 1, userName: 'Admin', role: 'ADMIN' };
+    try {
+        // Llamada real al backend Spring Boot
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                correo: email,  // Tu backend espera 'correo', no 'email'
+                password: password 
+            }),
+        });
+
+        if (!res.ok) {
+            throw new Error('Credenciales no válidas');
         }
-    } else {
-        if (email === 'cliente@test.com' && password === 'cliente') {
-            return { token: 'client-token', userId: 101, userName: 'Juan Pérez', role: 'CLIENTE' };
-        }
+
+        const data = await res.json();
+        
+        // Tu backend devuelve { token: "jwt-string" }
+        // Necesitamos decodificar el JWT para obtener datos del usuario
+        const userInfo = await getUserInfoFromToken(data.token);
+        
+        return { 
+            token: data.token, 
+            userId: userInfo.userId, 
+            userName: userInfo.userName, 
+            role: userInfo.role 
+        };
+    } catch (error) {
+        console.error('Error en login:', error);
+        throw new Error("Credenciales no válidas.");
     }
+};
 
-    // --- EJEMPLO DE LLAMADA REAL AL BACKEND (COMENTADO) ---
-    // En producción deberías reemplazar el stub por una llamada a tu API,
-    // por ejemplo usando fetch/axios:
-    //
-    // const res = await fetch('/api/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password, isAdmin }),
-    // });
-    // if (!res.ok) throw new Error('Credenciales no válidas');
-    // const data = await res.json();
-    // return { token: data.token, userId: data.user.id, userName: data.user.name, role: data.user.role };
+// Función auxiliar para obtener info del usuario desde el backend
+const getUserInfoFromToken = async (token) => {
+    try {
+        // Llamar al endpoint /api/auth/me para obtener datos del usuario
+        const res = await fetch(`${API_BASE}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const userData = await res.json();
+            return {
+                userId: userData.id,
+                userName: userData.nombre + ' ' + userData.apellido,
+                role: 'ADMIN' // Por ahora asumimos ADMIN, después puedes mapear rolId a nombre
+            };
+        } else {
+            throw new Error('No se pudo obtener información del usuario');
+        }
+    } catch (e) {
+        console.error('Error obteniendo datos del usuario:', e);
+        // Fallback: decodificar JWT básico
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return {
+            userId: 1,
+            userName: payload.sub || 'Admin',
+            role: 'ADMIN'
+        };
+    }
+};
 
-    // Si falla (credenciales incorrectas)
-    throw new Error("Credenciales no válidas.");
+// Función para validar token (útil para AuthContext)
+export const validateToken = async (token) => {
+    try {
+        const res = await fetch(`${API_BASE}/auth/validate`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return res.ok;
+    } catch (error) {
+        return false;
+    }
 };
