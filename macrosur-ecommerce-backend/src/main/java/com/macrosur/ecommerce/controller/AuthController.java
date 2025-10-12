@@ -15,8 +15,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173"})
 public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
@@ -56,6 +59,45 @@ public class AuthController {
         user.setContrasenaHash(passwordEncoder.encode(user.getContrasenaHash()));
         usuarioRepo.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado");
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
+        try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                if (jwtUtil.validateToken(token)) {
+                    return ResponseEntity.ok().build();
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            log.warn("Error validando token: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioAdmin> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                String correo = jwtUtil.extractUsername(token);
+                if (correo != null && jwtUtil.validateToken(token)) {
+                    Optional<UsuarioAdmin> userOpt = usuarioRepo.findByCorreo(correo);
+                    if (userOpt.isPresent()) {
+                        UsuarioAdmin user = userOpt.get();
+                        // No devolver la contraseña
+                        user.setContrasenaHash(null);
+                        return ResponseEntity.ok(user);
+                    }
+                }
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            log.warn("Error obteniendo usuario actual: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 }
 

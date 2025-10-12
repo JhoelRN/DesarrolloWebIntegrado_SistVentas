@@ -22,9 +22,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> {})  // Habilita CORS usando la configuración por defecto
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/validate").permitAll()
+                        .requestMatchers("/api/auth/me").permitAll()
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService);

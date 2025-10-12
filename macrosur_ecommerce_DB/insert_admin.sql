@@ -28,7 +28,7 @@ INSERT INTO Rol_Permiso (rol_id, permiso_id) VALUES (1, 4);
 -- Luego reemplaza '<HASH_AQUI>' por el valor resultante.
 
 INSERT INTO Usuarios_Admin (rol_id, nombre, apellido, correo_corporativo, contrasena_hash, activo)
-VALUES (1, 'Admin', 'Macrosur', 'admin@macrosur.com', '<HASH_AQUI>', true);
+VALUES (1, 'Admin', 'Macrosur', 'admin@macrosur.com', '$2b$10$TvU.lZ3YESXdXuWBI.9uv.F0E6.Fus87v036KhpWAa0hm07MqzFxe', true);
 
 -- Si no quieres generar hash ahora para pruebas locales, puedes temporalmente usar un hash conocido
 -- generado con bcrypt para la contraseña 'admin'. Ejemplo (Linux/Mac):
