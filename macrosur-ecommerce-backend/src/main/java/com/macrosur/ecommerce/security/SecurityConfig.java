@@ -22,15 +22,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {})  // Habilita CORS usando la configuración por defecto
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/validate").permitAll()
-                        .requestMatchers("/api/auth/me").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/test").permitAll()
+                        .requestMatchers("/api/reports/**").permitAll() // TEMPORAL: Para probar reportes
+                        .requestMatchers("/api/debug/**").permitAll() // TEMPORAL: Para debugging
+                        .requestMatchers("/error", "/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )
+                .sessionManagement(session -> session.sessionCreationPolicy(
+                    org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .userDetailsService(userDetailsService);
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -39,8 +41,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
     }
 
     @Bean

@@ -1,70 +1,56 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-
-// Definición de permisos por rol
-const ROLE_PERMISSIONS = {
-  ADMIN: ['*'], // Admin tiene acceso a todo
-  GESTOR_LOGISTICA: [
-    'view_dashboard',
-    'view_orders',
-    'manage_inventory',
-    'manage_restock',
-    'manage_logistics',
-    'view_reports'
-  ],
-  GESTOR_PRODUCTOS: [
-    'view_dashboard',
-    'manage_products',
-    'manage_categories',
-    'view_orders',
-    'view_inventory',
-    'view_reports'
-  ],
-  GESTOR_COMERCIAL: [
-    'view_dashboard',
-    'view_products',
-    'manage_promotions',
-    'view_orders',
-    'manage_customers',
-    'manage_reviews',
-    'view_reports'
-  ]
-};
-
-// Hook para verificar permisos
-export const usePermissions = () => {
-  const { userRole } = useAuth();
-  
-  const hasPermission = (permission) => {
-    if (!userRole) return false;
-    
-    const userPermissions = ROLE_PERMISSIONS[userRole] || [];
-    return userPermissions.includes('*') || userPermissions.includes(permission);
-  };
-
-  const canAccess = (permissions) => {
-    if (Array.isArray(permissions)) {
-      return permissions.some(permission => hasPermission(permission));
-    }
-    return hasPermission(permissions);
-  };
-
-  return { hasPermission, canAccess, userRole };
-};
+import { Alert } from 'react-bootstrap';
 
 // Componente para proteger contenido basado en permisos
-const PermissionGuard = ({ permission, permissions, children, fallback = null }) => {
-  const { canAccess, hasPermission } = usePermissions();
-  
-  let allowed = false;
-  
-  if (permission) {
-    allowed = hasPermission(permission);
-  } else if (permissions) {
-    allowed = canAccess(permissions);
+const PermissionGuard = ({ 
+  children, 
+  requiredRole = null, 
+  requiredPermission = null, 
+  requiredPermissions = [], 
+  requireAll = false,
+  fallback = null,
+  showFallback = false 
+}) => {
+  const { userRole, hasPermission, hasRole } = useAuth();
+
+  // Verificar rol si se especifica
+  if (requiredRole && !hasRole(requiredRole)) {
+    return showFallback ? (
+      <Alert variant="warning">
+        <i className="bi bi-shield-exclamation me-2"></i>
+        No tienes permisos para acceder a esta sección. Se requiere rol: {requiredRole}
+      </Alert>
+    ) : fallback;
   }
-  
-  return allowed ? children : fallback;
+
+  // Verificar permiso único si se especifica
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return showFallback ? (
+      <Alert variant="warning">
+        <i className="bi bi-shield-exclamation me-2"></i>
+        No tienes los permisos necesarios para realizar esta acción.
+      </Alert>
+    ) : fallback;
+  }
+
+  // Verificar múltiples permisos
+  if (requiredPermissions.length > 0) {
+    const hasRequiredPermissions = requireAll 
+      ? requiredPermissions.every(permission => hasPermission(permission))
+      : requiredPermissions.some(permission => hasPermission(permission));
+
+    if (!hasRequiredPermissions) {
+      return showFallback ? (
+        <Alert variant="warning">
+          <i className="bi bi-shield-exclamation me-2"></i>
+          No tienes los permisos necesarios para acceder a esta funcionalidad.
+        </Alert>
+      ) : fallback;
+    }
+  }
+
+  return children;
 };
 
 export default PermissionGuard;

@@ -15,6 +15,7 @@ import ReportsPage from '../pages/admin/ReportsPage';
 import RestockPage from '../pages/admin/RestockPage';
 import ReviewsPage from '../pages/admin/ReviewsPage';
 import ClaimsPage from '../pages/admin/ClaimsPage';
+import ReportsTestPage from '../pages/admin/ReportsTestPage';
 
 const NotFound = () => <Container className="mt-4"><h2 className="text-danger">404 | Admin - Ruta No Válida</h2></Container>;
 
@@ -50,7 +51,10 @@ const AdminRouter = () => {
         <Route path="/users" element={<UsersPage />} />
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/claims" element={<ClaimsPage />} />
-        <Route path="/reports" element={<ReportsPage />} />        {/* Fallback dentro del panel de admin */}
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports-test" element={<ReportsTestPage />} />
+        
+        {/* Fallback dentro del panel de admin */}
         <Route path="*" element={<NotFound />} />
     </Routes>
   );

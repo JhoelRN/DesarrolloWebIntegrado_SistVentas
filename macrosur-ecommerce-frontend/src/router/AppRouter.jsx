@@ -88,7 +88,7 @@ const AppRouter = () => {
             <Route 
                 path="/admin/*"
                 element={
-                    <ProtectedRoute requiredRole="ADMIN">
+                    <ProtectedRoute requiredRole={["ADMIN", "GESTOR_LOGISTICA", "GESTOR_PRODUCTOS", "GESTOR_COMERCIAL"]}>
                         <AdminRouter /> {/* Sub-Router para todas las vistas de administración */}
                     </ProtectedRoute>
                 }

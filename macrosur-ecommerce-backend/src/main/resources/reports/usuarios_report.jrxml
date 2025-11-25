@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="usuarios_report" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="50" bottomMargin="50" uuid="f47ac10b-58cc-4372-a567-0e02b2c3d479">
+    <field name="usuario_admin_id" class="java.lang.Integer"/>
+    <field name="nombre" class="java.lang.String"/>
+    <field name="apellido" class="java.lang.String"/>
+    <field name="correo_corporativo" class="java.lang.String"/>
+    <field name="nombre_rol" class="java.lang.String"/>
+    <field name="activo" class="java.lang.Boolean"/>
+    <title><band height="30"><staticText><reportElement x="0" y="0" width="515" height="30"/><text><![CDATA[Reporte de Usuarios]]></text></staticText></band></title>
+    <columnHeader><band height="20">
+        <staticText><reportElement x="0" y="0" width="50" height="20"/><text><![CDATA[ID]]></text></staticText>
+        <staticText><reportElement x="50" y="0" width="120" height="20"/><text><![CDATA[Nombre]]></text></staticText>
+        <staticText><reportElement x="170" y="0" width="150" height="20"/><text><![CDATA[Correo]]></text></staticText>
+        <staticText><reportElement x="320" y="0" width="120" height="20"/><text><![CDATA[Rol]]></text></staticText>
+        <staticText><reportElement x="440" y="0" width="75" height="20"/><text><![CDATA[Activo]]></text></staticText>
+    </band></columnHeader>
+    <detail><band height="20">
+        <textField><reportElement x="0" y="0" width="50" height="20"/><textFieldExpression><![CDATA[$F{usuario_admin_id}]]></textFieldExpression></textField>
+        <textField><reportElement x="50" y="0" width="120" height="20"/><textFieldExpression><![CDATA[$F{nombre} + " " + $F{apellido}]]></textFieldExpression></textField>
+        <textField><reportElement x="170" y="0" width="150" height="20"/><textFieldExpression><![CDATA[$F{correo_corporativo}]]></textFieldExpression></textField>
+        <textField><reportElement x="320" y="0" width="120" height="20"/><textFieldExpression><![CDATA[$F{nombre_rol}]]></textFieldExpression></textField>
+        <textField><reportElement x="440" y="0" width="75" height="20"/><textFieldExpression><![CDATA[$F{activo} ? "Sí" : "No"]]></textFieldExpression></textField>
+    </band></detail>
+</jasperReport>

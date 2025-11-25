@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Table, Button, Form, Modal, Alert, Badge } from 'react-bootstrap';
 import * as adminApi from '../../api/admin';
+import PermissionGuard from '../../components/common/PermissionGuard';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const UsersPage = () => {
+  const { canPerformAction, isAdmin } = usePermissions();
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -49,13 +53,24 @@ const UsersPage = () => {
     }
 
     try {
-      await adminApi.createAdminUser(formData);
-      setSuccess('Usuario creado exitosamente');
-      setShowModal(false);
-      setFormData({ nombre: '', apellido: '', correo_corporativo: '', contrasena: '', rol_id: 1 });
+      if (editingUser) {
+        // Actualizar usuario existente
+        const updateData = { ...formData };
+        if (!updateData.contrasena) {
+          delete updateData.contrasena; // No actualizar contraseña si está vacía
+        }
+        await adminApi.updateAdminUser(editingUser.usuario_admin_id, updateData);
+        setSuccess('Usuario actualizado exitosamente');
+      } else {
+        // Crear nuevo usuario
+        await adminApi.createAdminUser(formData);
+        setSuccess('Usuario creado exitosamente');
+      }
+      
+      handleCloseModal();
       await loadData(); // Recargar lista
     } catch (err) {
-      setError('Error creando usuario: ' + err.message);
+      setError(`Error ${editingUser ? 'actualizando' : 'creando'} usuario: ` + err.message);
     } finally {
       setLoading(false);
     }
@@ -76,15 +91,62 @@ const UsersPage = () => {
     }
   };
 
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    setFormData({
+      nombre: user.nombre,
+      apellido: user.apellido,
+      correo_corporativo: user.correo_corporativo,
+      contrasena: '', // No mostrar contraseña actual
+      rol_id: user.rol_id
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
+      return;
+    }
+
+    try {
+      await adminApi.deleteAdminUser(userId);
+      setSuccess('Usuario eliminado exitosamente');
+      await loadData();
+    } catch (err) {
+      setError('Error eliminando usuario: ' + err.message);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingUser(null);
+    setFormData({ nombre: '', apellido: '', correo_corporativo: '', contrasena: '', rol_id: 1 });
+  };
+
+  // Verificar permisos antes de renderizar la página
+  if (!isAdmin) {
+    return (
+      <Container fluid>
+        <Alert variant="danger">
+          <i className="bi bi-shield-exclamation me-2"></i>
+          <strong>Acceso Denegado</strong>
+          <p>Solo los administradores pueden acceder a la gestión de usuarios.</p>
+        </Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container fluid>
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <h1>Gestión de Usuarios Admin</h1>
-            <Button variant="primary" onClick={() => setShowModal(true)}>
-              <i className="bi bi-plus-circle me-2"></i>Nuevo Usuario
-            </Button>
+            <PermissionGuard requiredPermission="GESTIONAR_USUARIOS">
+              <Button variant="primary" onClick={() => setShowModal(true)}>
+                <i className="bi bi-plus-circle me-2"></i>Nuevo Usuario
+              </Button>
+            </PermissionGuard>
           </div>
         </Col>
       </Row>
@@ -125,12 +187,23 @@ const UsersPage = () => {
                     </Badge>
                   </td>
                   <td>
-                    <Button variant="outline-primary" size="sm" className="me-2">
-                      <i className="bi bi-pencil"></i>
-                    </Button>
-                    <Button variant="outline-danger" size="sm">
-                      <i className="bi bi-trash"></i>
-                    </Button>
+                    <PermissionGuard requiredPermission="GESTIONAR_USUARIOS">
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm" 
+                        className="me-2"
+                        onClick={() => handleEditUser(user)}
+                      >
+                        <i className="bi bi-pencil"></i>
+                      </Button>
+                      <Button 
+                        variant="outline-danger" 
+                        size="sm"
+                        onClick={() => handleDeleteUser(user.usuario_admin_id)}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </Button>
+                    </PermissionGuard>
                   </td>
                 </tr>
               ))}
@@ -144,10 +217,12 @@ const UsersPage = () => {
         </Card.Body>
       </Card>
 
-      {/* Modal para crear usuario */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+      {/* Modal para crear/editar usuario */}
+      <Modal show={showModal} onHide={handleCloseModal} size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Crear Nuevo Usuario Admin</Modal.Title>
+          <Modal.Title>
+            {editingUser ? 'Editar Usuario Admin' : 'Crear Nuevo Usuario Admin'}
+          </Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleSubmit}>
           <Modal.Body>
@@ -191,13 +266,16 @@ const UsersPage = () => {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Contraseña *</Form.Label>
+              <Form.Label>
+                Contraseña {editingUser ? '(dejar vacío para mantener actual)' : '*'}
+              </Form.Label>
               <Form.Control
                 type="password"
                 value={formData.contrasena}
                 onChange={(e) => setFormData({...formData, contrasena: e.target.value})}
                 minLength={6}
-                required
+                required={!editingUser}
+                placeholder={editingUser ? 'Nueva contraseña (opcional)' : 'Contraseña'}
               />
             </Form.Group>
 
@@ -220,11 +298,14 @@ const UsersPage = () => {
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>
+            <Button variant="secondary" onClick={handleCloseModal}>
               Cancelar
             </Button>
             <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Creando...' : 'Crear Usuario'}
+              {loading 
+                ? (editingUser ? 'Actualizando...' : 'Creando...') 
+                : (editingUser ? 'Actualizar Usuario' : 'Crear Usuario')
+              }
             </Button>
           </Modal.Footer>
         </Form>

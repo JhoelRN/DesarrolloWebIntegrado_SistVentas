@@ -9,7 +9,8 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userRole, setUserRole] = useState(null); // CLIENTE, ADMIN, GESTOR
+    const [userRole, setUserRole] = useState(null);
+    const [userPermissions, setUserPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
     const logoutTimerRef = useRef(null);
     const SESSION_TTL = 24 * 60 * 60 * 1000; // 24 horas por defecto (en ms)
@@ -24,94 +25,104 @@ export const AuthProvider = ({ children }) => {
                     // Intentar validar el token con el backend
                     const isValid = await authApi.validateToken(storedToken);
                     if (isValid) {
-                        // Obtener datos del usuario desde el backend
-                        try {
-                            const res = await fetch('http://localhost:8081/api/auth/me', {
-                                headers: { 'Authorization': `Bearer ${storedToken}` }
-                            });
-                            if (res.ok) {
-                                const userData = await res.json();
-                                const userInfo = {
-                                    id: userData.id,
-                                    name: userData.nombre + ' ' + userData.apellido
-                                };
-                                const role = 'ADMIN'; // Mapear rolId a nombre después
-                                
-                                setUser(userInfo);
-                                setUserRole(role);
-                                setIsAuthenticated(true);
-                            } else {
-                                throw new Error('No se pudo obtener datos del usuario');
-                            }
-                        } catch (err) {
-                            console.error('Error obteniendo datos del usuario:', err);
-                            // Fallback con datos básicos del token
-                            const payload = JSON.parse(atob(storedToken.split('.')[1]));
-                            setUser({ id: 1, name: payload.sub || 'Admin' });
-                            setUserRole('ADMIN');
-                            setIsAuthenticated(true);
-                        }
+                        // Obtener datos completos del usuario desde el backend
+                        const userData = await authApi.getCurrentUser(storedToken);
+                        
+                        console.log('🔍 AuthContext - Datos del usuario:', userData);
+                        
+                        setUser({
+                            id: userData.id,
+                            name: userData.name,
+                            email: userData.email
+                        });
+                        setUserRole(userData.roleName);
+                        setUserPermissions(userData.permissions);
+                        setIsAuthenticated(true);
+                        
+                        console.log('✅ AuthContext - Usuario autenticado:', {
+                            role: userData.roleName,
+                            permissions: userData.permissions
+                        });
                     } else {
                         // Token inválido
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('authTokenExpiry');
-                        setUser(null);
-                        setUserRole(null);
-                        setIsAuthenticated(false);
+                        clearAuthData();
                     }
-                    // Si hay un expiry guardado y válido, programar cierre automático
-                    const rawExpiry = localStorage.getItem('authTokenExpiry');
-                    const expiry = rawExpiry ? parseInt(rawExpiry, 10) : Date.now() + SESSION_TTL;
-                    if (expiry > Date.now()) {
-                        const msUntil = expiry - Date.now();
-                        // Limpiar timer anterior
-                        if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-                        logoutTimerRef.current = setTimeout(() => {
-                            // Auto logout al expirar la sesión
-                            logout();
-                        }, msUntil);
-                    } else {
-                        // Expirado
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('authTokenExpiry');
-                        setUser(null);
-                        setUserRole(null);
-                        setIsAuthenticated(false);
-                    }
+                    
+                    // Programar auto-logout basado en expiración
+                    setupAutoLogout();
                 } catch (e) {
                     console.error('Error validando token:', e);
-                    // Fallback: limpiar
-                    localStorage.removeItem('authToken');
-                    setUser(null);
-                    setUserRole(null);
-                    setIsAuthenticated(false);
+                    clearAuthData();
                 } finally {
                     setLoading(false);
                 }
             };
             validate();
-        }
-        else {
+        } else {
             // No hay token: dejar de cargar
             setLoading(false);
         }
     }, []);
 
+    // Función auxiliar para limpiar datos de autenticación
+    const clearAuthData = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authTokenExpiry');
+        setUser(null);
+        setUserRole(null);
+        setUserPermissions([]);
+        setIsAuthenticated(false);
+        if (logoutTimerRef.current) {
+            clearTimeout(logoutTimerRef.current);
+            logoutTimerRef.current = null;
+        }
+    };
+
+    // Función auxiliar para configurar auto-logout
+    const setupAutoLogout = () => {
+        const rawExpiry = localStorage.getItem('authTokenExpiry');
+        const expiry = rawExpiry ? parseInt(rawExpiry, 10) : Date.now() + SESSION_TTL;
+        
+        if (expiry > Date.now()) {
+            const msUntil = expiry - Date.now();
+            if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+            logoutTimerRef.current = setTimeout(() => logout(), msUntil);
+        } else {
+            clearAuthData();
+        }
+    };
+
     const login = async (email, password, isAdmin) => {
         try {
             const response = await authApi.login(email, password, isAdmin);
             
-            // Simulación de éxito
+            // Guardar token
             localStorage.setItem('authToken', response.token);
-            // Guardar expiry (ahora + TTL)
             const expiry = Date.now() + SESSION_TTL;
             localStorage.setItem('authTokenExpiry', expiry.toString());
-            // Programar auto-logout cuando expire la sesión
-            if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-            logoutTimerRef.current = setTimeout(() => logout(), SESSION_TTL);
-            setUser({ id: response.userId, name: response.userName });
-            setUserRole(response.role);
+            
+            // Obtener datos completos del usuario
+            const userData = await authApi.getCurrentUser(response.token);
+            
+            console.log('🔍 Login - Datos del usuario:', userData);
+            
+            setUser({
+                id: userData.id,
+                name: userData.name,
+                email: userData.email
+            });
+            setUserRole(userData.roleName);
+            setUserPermissions(userData.permissions);
             setIsAuthenticated(true);
+            
+            console.log('✅ Login - Usuario autenticado:', {
+                role: userData.roleName,
+                permissions: userData.permissions
+            });
+            
+            // Configurar auto-logout
+            setupAutoLogout();
+            
             return true;
         } catch (error) {
             console.error('Fallo en el login:', error);
@@ -120,15 +131,17 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        localStorage.removeItem('authToken');
-        setUser(null);
-        setUserRole(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem('authTokenExpiry');
-        if (logoutTimerRef.current) {
-            clearTimeout(logoutTimerRef.current);
-            logoutTimerRef.current = null;
-        }
+        clearAuthData();
+    };
+
+    // Función para verificar si el usuario tiene un permiso específico
+    const hasPermission = (permission) => {
+        return userPermissions.includes(permission);
+    };
+
+    // Función para verificar si el usuario tiene un rol específico
+    const hasRole = (role) => {
+        return userRole === role;
     };
 
     const contextValue = {
@@ -136,8 +149,11 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         loading,
         userRole,
+        userPermissions,
         login,
-        logout
+        logout,
+        hasPermission,
+        hasRole
     };
 
     return (

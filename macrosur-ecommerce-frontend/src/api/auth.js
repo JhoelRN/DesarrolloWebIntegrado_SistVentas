@@ -10,8 +10,8 @@ export const login = async (email, password, isAdmin) => {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ 
-                correo: email,  // Tu backend espera 'correo', no 'email'
-                password: password 
+                correo_corporativo: email,  // CORRECCIÓN: Backend espera 'correo_corporativo'
+                contrasena: password        // CORRECCIÓN: Backend espera 'contrasena'
             }),
         });
 
@@ -21,15 +21,9 @@ export const login = async (email, password, isAdmin) => {
 
         const data = await res.json();
         
-        // Tu backend devuelve { token: "jwt-string" }
-        // Necesitamos decodificar el JWT para obtener datos del usuario
-        const userInfo = await getUserInfoFromToken(data.token);
-        
+        // Simplemente retornamos el token, los datos del usuario se obtendrán después
         return { 
-            token: data.token, 
-            userId: userInfo.userId, 
-            userName: userInfo.userName, 
-            role: userInfo.role 
+            token: data.token
         };
     } catch (error) {
         console.error('Error en login:', error);
@@ -37,33 +31,32 @@ export const login = async (email, password, isAdmin) => {
     }
 };
 
-// Función auxiliar para obtener info del usuario desde el backend
-const getUserInfoFromToken = async (token) => {
+// Función para obtener datos completos del usuario autenticado
+export const getCurrentUser = async (token) => {
     try {
-        // Llamar al endpoint /api/auth/me para obtener datos del usuario
         const res = await fetch(`${API_BASE}/auth/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (res.ok) {
-            const userData = await res.json();
-            return {
-                userId: userData.id,
-                userName: userData.nombre + ' ' + userData.apellido,
-                role: 'ADMIN' // Por ahora asumimos ADMIN, después puedes mapear rolId a nombre
-            };
-        } else {
+        if (!res.ok) {
             throw new Error('No se pudo obtener información del usuario');
         }
-    } catch (e) {
-        console.error('Error obteniendo datos del usuario:', e);
-        // Fallback: decodificar JWT básico
-        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        const userData = await res.json();
+        
+        // Retornar datos estructurados del usuario
         return {
-            userId: 1,
-            userName: payload.sub || 'Admin',
-            role: 'ADMIN'
+            id: userData.usuario_admin_id,
+            name: `${userData.nombre} ${userData.apellido}`,
+            email: userData.correo_corporativo,
+            rolId: userData.role?.rol_id,
+            roleName: userData.role?.nombreRol || 'UNKNOWN',
+            permissions: userData.permissions ? userData.permissions.map(p => p.nombrePermiso) : [],
+            isActive: userData.activo
         };
+    } catch (error) {
+        console.error('Error obteniendo datos del usuario:', error);
+        throw error;
     }
 };
 

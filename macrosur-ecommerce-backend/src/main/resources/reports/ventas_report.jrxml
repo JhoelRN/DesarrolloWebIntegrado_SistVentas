@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="ventas_report" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="50" bottomMargin="50">
+    <field name="fecha" class="java.sql.Date"/>
+    <field name="cliente" class="java.lang.String"/>
+    <field name="productos" class="java.lang.String"/>
+    <field name="total" class="java.math.BigDecimal"/>
+    <field name="estado" class="java.lang.String"/>
+    <title><band height="30"><staticText><reportElement x="0" y="0" width="515" height="30"/><text><![CDATA[Reporte de Ventas]]></text></staticText></band></title>
+    <columnHeader><band height="20">
+        <staticText><reportElement x="0" y="0" width="80" height="20"/><text><![CDATA[Fecha]]></text></staticText>
+        <staticText><reportElement x="80" y="0" width="150" height="20"/><text><![CDATA[Cliente]]></text></staticText>
+        <staticText><reportElement x="230" y="0" width="175" height="20"/><text><![CDATA[Productos]]></text></staticText>
+        <staticText><reportElement x="405" y="0" width="60" height="20"/><text><![CDATA[Total]]></text></staticText>
+        <staticText><reportElement x="465" y="0" width="50" height="20"/><text><![CDATA[Estado]]></text></staticText>
+    </band></columnHeader>
+    <detail><band height="20">
+        <textField><reportElement x="0" y="0" width="80" height="20"/><textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression></textField>
+        <textField><reportElement x="80" y="0" width="150" height="20"/><textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression></textField>
+        <textField><reportElement x="230" y="0" width="175" height="20"/><textFieldExpression><![CDATA[$F{productos}]]></textFieldExpression></textField>
+        <textField><reportElement x="405" y="0" width="60" height="20"/><textFieldExpression><![CDATA[$F{total}]]></textFieldExpression></textField>
+        <textField><reportElement x="465" y="0" width="50" height="20"/><textFieldExpression><![CDATA[$F{estado}]]></textFieldExpression></textField>
+    </band></detail>
+</jasperReport>
