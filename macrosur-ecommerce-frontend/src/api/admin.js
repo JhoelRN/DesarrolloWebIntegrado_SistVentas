@@ -158,6 +158,42 @@ export const toggleUserStatus = async (userId, active) => {
   }
 };
 
+export const activateUser = async (userId) => {
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${userId}/activate`, {
+      method: 'PUT',
+      headers: getAuthHeaders()
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error activating user: ${res.status}`);
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error('Error activando usuario:', error);
+    throw error;
+  }
+};
+
+export const deactivateUser = async (userId) => {
+  try {
+    const res = await fetch(`${API_BASE}/admin/users/${userId}/deactivate`, {
+      method: 'PUT',
+      headers: getAuthHeaders()
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error deactivating user: ${res.status}`);
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error('Error desactivando usuario:', error);
+    throw error;
+  }
+};
+
 export default {
   getRoles,
   getAdminUsers,
@@ -165,6 +201,8 @@ export default {
   updateAdminUser,
   deleteAdminUser,
   toggleUserStatus,
+  activateUser,
+  deactivateUser,
   assignPermissionsToRole,
   getPermissions
 };

@@ -6,5 +6,5 @@ public class UpdateUserRequest {
     public String apellido;
     public String correo_corporativo;
     public Long rol_id;
-    // no incluir contrasena aquí para no cambiarla accidentalmente
+    public String contrasena; // opcional: si viene vacío/null, no actualiza contraseña
 }

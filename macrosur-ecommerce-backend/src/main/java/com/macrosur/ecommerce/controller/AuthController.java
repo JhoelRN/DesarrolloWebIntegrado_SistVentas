@@ -76,14 +76,14 @@ public class AuthController {
             if (usuario.getRole() != null) {
                 RoleDto roleDto = new RoleDto();
                 roleDto.rol_id = usuario.getRole().getRol_id();
-                roleDto.nombreRol = usuario.getRole().getNombreRol();
+                roleDto.nombre_rol = usuario.getRole().getNombreRol();
                 response.setRole(roleDto);
 
                 if (usuario.getRole().getPermissions() != null) {
                     response.setPermissions(usuario.getRole().getPermissions().stream().map(p -> {
                         PermissionDto pd = new PermissionDto();
                         pd.permiso_id = p.getPermiso_id();
-                        pd.nombrePermiso = p.getNombrePermiso();
+                        pd.nombre_permiso = p.getNombrePermiso();
                         return pd;
                     }).collect(java.util.stream.Collectors.toSet()));
                 }
@@ -126,13 +126,13 @@ public class AuthController {
         if (usuario.getRole() != null) {
             RoleDto rd = new RoleDto();
             rd.rol_id = usuario.getRole().getRol_id();
-            rd.nombreRol = usuario.getRole().getNombreRol();
+            rd.nombre_rol = usuario.getRole().getNombreRol();
             dto.role = rd;
             if (usuario.getRole().getPermissions() != null) {
                 dto.permissions = usuario.getRole().getPermissions().stream().map(p -> {
                     PermissionDto pd = new PermissionDto();
                     pd.permiso_id = p.getPermiso_id();
-                    pd.nombrePermiso = p.getNombrePermiso();
+                    pd.nombre_permiso = p.getNombrePermiso();
                     return pd;
                 }).collect(java.util.stream.Collectors.toSet());
             }

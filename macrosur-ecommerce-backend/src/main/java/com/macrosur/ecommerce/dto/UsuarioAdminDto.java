@@ -9,6 +9,7 @@ public class UsuarioAdminDto {
     public String apellido;
     public String correo_corporativo;
     public Boolean activo;
+    public Long rol_id; // ID del rol para compatibilidad con frontend
     public RoleDto role;
     public Set<PermissionDto> permissions;
 }

@@ -27,7 +27,7 @@ public class RolePermissionService {
         return roleRepo.findAll().stream().map(r -> {
             RoleDto dto = new RoleDto();
             dto.rol_id = r.getRol_id();
-            dto.nombreRol = r.getNombreRol();
+            dto.nombre_rol = r.getNombreRol();
             return dto;
         }).collect(Collectors.toList());
     }
@@ -36,7 +36,7 @@ public class RolePermissionService {
         return permissionRepo.findAll().stream().map(p -> {
             PermissionDto dto = new PermissionDto();
             dto.permiso_id = p.getPermiso_id();
-            dto.nombrePermiso = p.getNombrePermiso();
+            dto.nombre_permiso = p.getNombrePermiso();
             return dto;
         }).collect(Collectors.toList());
     }

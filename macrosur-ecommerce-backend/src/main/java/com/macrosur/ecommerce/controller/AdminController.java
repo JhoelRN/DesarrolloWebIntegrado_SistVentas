@@ -50,6 +50,20 @@ public class AdminController {
         return userService.toggleUserStatus(id, request);
     }
 
+    @PutMapping("/users/{id}/activate")
+    public UsuarioAdminDto activateUser(@PathVariable Long id) {
+        StatusRequest req = new StatusRequest();
+        req.activo = true;
+        return userService.toggleUserStatus(id, req);
+    }
+
+    @PutMapping("/users/{id}/deactivate")
+    public UsuarioAdminDto deactivateUser(@PathVariable Long id) {
+        StatusRequest req = new StatusRequest();
+        req.activo = false;
+        return userService.toggleUserStatus(id, req);
+    }
+
     @GetMapping("/roles")
     public List<RoleDto> getRoles() {
         return rpService.getRoles();

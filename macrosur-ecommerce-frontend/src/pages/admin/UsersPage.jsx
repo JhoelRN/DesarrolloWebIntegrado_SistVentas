@@ -19,7 +19,7 @@ const UsersPage = () => {
     apellido: '',
     correo_corporativo: '',
     contrasena: '',
-    rol_id: 1
+    rol_id: 3 // Por defecto GESTOR_PRODUCTOS
   });
 
   useEffect(() => {
@@ -103,14 +103,57 @@ const UsersPage = () => {
     setShowModal(true);
   };
 
+  const handleToggleUserStatus = async (userId, currentStatus) => {
+    // Prevenir auto-desactivación
+    const currentUserEmail = localStorage.getItem('userEmail');
+    const userToToggle = users.find(u => u.usuario_admin_id === userId);
+    
+    if (userToToggle && userToToggle.correo_corporativo === currentUserEmail) {
+      setError('No puedes desactivarte a ti mismo');
+      return;
+    }
+
+    const action = currentStatus ? 'desactivar' : 'activar';
+    if (!window.confirm(`¿Estás seguro de que deseas ${action} este usuario?`)) {
+      return;
+    }
+
+    try {
+      if (currentStatus) {
+        await adminApi.deactivateUser(userId);
+        setSuccess('Usuario desactivado exitosamente. No podrá iniciar sesión.');
+      } else {
+        await adminApi.activateUser(userId);
+        setSuccess('Usuario activado exitosamente. Ya puede iniciar sesión.');
+      }
+      await loadData();
+    } catch (err) {
+      setError(`Error ${action}ando usuario: ` + err.message);
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
+    // Prevenir auto-eliminación
+    const currentUserEmail = localStorage.getItem('userEmail');
+    const userToDelete = users.find(u => u.usuario_admin_id === userId);
+    
+    if (userToDelete && userToDelete.correo_corporativo === currentUserEmail) {
+      setError('No puedes eliminarte a ti mismo');
+      return;
+    }
+
+    // Confirmación doble para eliminar permanentemente
+    if (!window.confirm('⚠️ ADVERTENCIA: Esta acción ELIMINARÁ PERMANENTEMENTE el usuario y no se puede deshacer.\n\n¿Estás seguro?')) {
+      return;
+    }
+
+    if (!window.confirm('⚠️ ÚLTIMA CONFIRMACIÓN: Los datos del usuario se perderán para siempre.\n\n¿Confirmas la eliminación permanente?')) {
       return;
     }
 
     try {
       await adminApi.deleteAdminUser(userId);
-      setSuccess('Usuario eliminado exitosamente');
+      setSuccess('Usuario eliminado permanentemente de la base de datos.');
       await loadData();
     } catch (err) {
       setError('Error eliminando usuario: ' + err.message);
@@ -120,7 +163,7 @@ const UsersPage = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingUser(null);
-    setFormData({ nombre: '', apellido: '', correo_corporativo: '', contrasena: '', rol_id: 1 });
+    setFormData({ nombre: '', apellido: '', correo_corporativo: '', contrasena: '', rol_id: 3 });
   };
 
   // Verificar permisos antes de renderizar la página
@@ -193,16 +236,30 @@ const UsersPage = () => {
                         size="sm" 
                         className="me-2"
                         onClick={() => handleEditUser(user)}
+                        title="Editar usuario"
                       >
                         <i className="bi bi-pencil"></i>
                       </Button>
                       <Button 
-                        variant="outline-danger" 
+                        variant={user.activo ? 'outline-warning' : 'outline-success'}
                         size="sm"
-                        onClick={() => handleDeleteUser(user.usuario_admin_id)}
+                        className="me-2"
+                        onClick={() => handleToggleUserStatus(user.usuario_admin_id, user.activo)}
+                        title={user.activo ? 'Desactivar usuario (reversible)' : 'Activar usuario'}
                       >
-                        <i className="bi bi-trash"></i>
+                        <i className={user.activo ? 'bi bi-slash-circle' : 'bi bi-check-circle'}></i>
                       </Button>
+                      {/* Solo ADMIN puede eliminar permanentemente */}
+                      <PermissionGuard requiredRole="ADMIN">
+                        <Button 
+                          variant="outline-danger" 
+                          size="sm"
+                          onClick={() => handleDeleteUser(user.usuario_admin_id)}
+                          title="Eliminar permanentemente (NO reversible)"
+                        >
+                          <i className="bi bi-trash"></i>
+                        </Button>
+                      </PermissionGuard>
                     </PermissionGuard>
                   </td>
                 </tr>

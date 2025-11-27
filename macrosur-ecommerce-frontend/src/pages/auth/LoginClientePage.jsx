@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const LoginClientePage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -14,8 +15,8 @@ const LoginClientePage = () => {
         e.preventDefault();
         setError('');
 
-        // Intentar iniciar sesión como CLIENTE (isAdmin: false)
-        const success = await login(email, password, false); 
+        // Intentar iniciar sesión como CLIENTE (isAdmin: false) con opción recordarme
+        const success = await login(email, password, false, rememberMe); 
         
         if (success) {
             navigate('/profile');
@@ -44,7 +45,7 @@ const LoginClientePage = () => {
                             />
                         </Form.Group>
 
-                        <Form.Group className="mb-4" controlId="formBasicPassword">
+                        <Form.Group className="mb-3" controlId="formBasicPassword">
                             <Form.Label>Contraseña</Form.Label>
                             <Form.Control
                                 type="password"
@@ -53,6 +54,18 @@ const LoginClientePage = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
+                        </Form.Group>
+
+                        <Form.Group className="mb-4" controlId="rememberMeClient">
+                            <Form.Check
+                                type="checkbox"
+                                label="Mantener sesión iniciada"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            <Form.Text className="text-muted small">
+                                Recomendado solo en dispositivos personales
+                            </Form.Text>
                         </Form.Group>
 
                         <Button variant="primary" type="submit" className="w-100 mb-3">

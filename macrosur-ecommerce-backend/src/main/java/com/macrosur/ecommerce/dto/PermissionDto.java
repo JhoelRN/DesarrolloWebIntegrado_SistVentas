@@ -3,5 +3,5 @@ package com.macrosur.ecommerce.dto;
 
 public class PermissionDto {
     public Long permiso_id;
-    public String nombrePermiso;
+    public String nombre_permiso; // Consistencia con frontend
 }

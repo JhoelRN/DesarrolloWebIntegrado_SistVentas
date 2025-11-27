@@ -50,8 +50,8 @@ export const getCurrentUser = async (token) => {
             name: `${userData.nombre} ${userData.apellido}`,
             email: userData.correo_corporativo,
             rolId: userData.role?.rol_id,
-            roleName: userData.role?.nombreRol || 'UNKNOWN',
-            permissions: userData.permissions ? userData.permissions.map(p => p.nombrePermiso) : [],
+            roleName: userData.role?.nombre_rol || 'UNKNOWN',
+            permissions: userData.permissions ? userData.permissions.map(p => p.nombre_permiso) : [],
             isActive: userData.activo
         };
     } catch (error) {

@@ -1,18 +1,18 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Container, Button, Nav } from 'react-bootstrap';
+import { Container, Button, Nav, Badge } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import PermissionGuard from '../common/PermissionGuard';
 import { usePermissions } from '../../hooks/usePermissions';
 
 const LayoutAdmin = () => {
-  const { logout, userRole } = useAuth();
+  const { logout, userRole, user } = useAuth();
   const { canAccessPage, canPerformAction } = usePermissions();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    navigate('/'); // Navegar ANTES de limpiar el estado
+    setTimeout(() => logout(), 100); // Delay para completar navegación
   };
 
   return (
@@ -123,9 +123,15 @@ const LayoutAdmin = () => {
         <Container fluid>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h1 className="mb-0 text-danger">Panel de Administración</h1>
-            <div>
-              <Button variant="secondary" size="sm" className="me-2" as={Link} to="/">Ir al sitio</Button>
-              <Button variant="danger" size="sm" onClick={handleLogout}>Cerrar Sesión</Button>
+            <div className="d-flex align-items-center gap-3">
+              <div className="text-end">
+                <div className="fw-bold">{user?.name || 'Usuario'}</div>
+                <Badge bg="secondary" className="text-uppercase">{userRole}</Badge>
+              </div>
+              <Button variant="secondary" size="sm" as={Link} to="/">Ir al sitio</Button>
+              <Button variant="danger" size="sm" onClick={handleLogout}>
+                <i className="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+              </Button>
             </div>
           </div>
           <Outlet />

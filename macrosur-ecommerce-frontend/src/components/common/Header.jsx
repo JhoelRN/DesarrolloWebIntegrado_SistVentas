@@ -1,19 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container, Form, Button, InputGroup, Dropdown } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
-import { useCart } from '../../contexts/CartContext'; // Asumimos un CartContext
+import { useCart } from '../../contexts/CartContext';
+import * as categoriasApi from '../../api/categorias';
 
 const Header = () => {
     const { isAuthenticated, user, userRole, logout } = useAuth();
     const { cartCount } = useCart();
     const navigate = useNavigate();
+    const [categorias, setCategorias] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Cargar categorías al montar el componente
+    useEffect(() => {
+        const fetchCategorias = async () => {
+            try {
+                const data = await categoriasApi.getCategorias({ activo: true, size: 10 });
+                // Filtrar solo categorías principales (sin padre) y visibles al cliente
+                const principales = (data.content || []).filter(
+                    cat => !cat.categoriaPadreId && cat.visibleCliente
+                );
+                setCategorias(principales.slice(0, 5)); // Máximo 5 para el navbar
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+            }
+        };
+        fetchCategorias();
+    }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
-        const query = e.target.searchQuery.value;
-        if (query) {
-            navigate(`/catalogo?q=${query}`);
+        if (searchTerm.trim()) {
+            navigate(`/catalogo?search=${encodeURIComponent(searchTerm.trim())}`);
+            setSearchTerm(''); // Limpiar después de buscar
         }
     };
 
@@ -47,12 +67,13 @@ const Header = () => {
                             <InputGroup>
                                 <Form.Control
                                     type="search"
-                                    placeholder="Buscar alfombras, cortinas, accesorios..."
+                                    placeholder="Buscar productos..."
                                     className="me-2 rounded-start"
                                     aria-label="Search"
-                                    name="searchQuery"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                <Button variant="primary" type="submit" className="rounded-end">
+                                <Button variant="primary" type="submit" className="rounded-end" disabled={!searchTerm.trim()}>
                                     <i className="bi bi-search"></i>
                                 </Button>
                             </InputGroup>
@@ -81,7 +102,7 @@ const Header = () => {
                                                 <Dropdown.Divider />
                                             </>
                                         )}
-                                        <Dropdown.Item onClick={logout}>Cerrar Sesión</Dropdown.Item>
+                                        <Dropdown.Item onClick={() => { navigate('/'); setTimeout(() => logout(), 100); }}>Cerrar Sesión</Dropdown.Item>
                                     </Dropdown.Menu>
                                 </Dropdown>
                             ) : (
@@ -110,15 +131,23 @@ const Header = () => {
                 </Container>
             </Navbar>
 
-            {/* Navbar de Categorías (Placeholder) */}
-            <Navbar bg="dark" variant="dark" className="py-0 d-none d-lg-block">
+            {/* Navbar de Categorías Dinámicas */}
+            <Navbar bg="dark" variant="dark" className="py-2 d-none d-lg-block">
                 <Container>
                     <Nav className="me-auto">
-                        {/* Se cargarían desde la tabla Categorias */}
-                        <Nav.Link as={Link} to="/catalogo?c=alfombras" className="fw-semibold">Alfombras</Nav.Link>
-                        <Nav.Link as={Link} to="/catalogo?c=cortinas">Cortinas</Nav.Link>
-                        <Nav.Link as={Link} to="/catalogo?c=accesorios">Accesorios</Nav.Link>
-                        <Nav.Link as={Link} to="/info/nuestras-tiendas" className="text-warning fw-semibold">Nuestras Tiendas</Nav.Link>
+                        <Nav.Link as={Link} to="/catalogo" className="fw-semibold text-white">
+                            <i className="bi bi-grid-3x3-gap me-1"></i> Todas las Categorías
+                        </Nav.Link>
+                        {categorias.map((categoria) => (
+                            <Nav.Link 
+                                key={categoria.categoriaId}
+                                as={Link} 
+                                to={`/catalogo?categoria=${categoria.categoriaId}`}
+                                className="text-white-50"
+                            >
+                                {categoria.nombre}
+                            </Nav.Link>
+                        ))}
                     </Nav>
                 </Container>
             </Navbar>

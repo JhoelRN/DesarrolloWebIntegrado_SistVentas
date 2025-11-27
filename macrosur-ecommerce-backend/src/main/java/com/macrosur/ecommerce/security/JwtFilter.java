@@ -27,10 +27,15 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, jakarta.servlet.ServletException {
 
-        // Skip JWT processing for login, test, reports and debug endpoints
+        // Skip JWT processing for public endpoints
         String path = req.getRequestURI();
-        if (path.equals("/api/auth/login") || path.equals("/api/auth/test") || 
-            path.startsWith("/api/reports/") || path.startsWith("/api/debug/")) {
+        if (path.equals("/api/auth/login") || 
+            path.equals("/api/auth/test") || 
+            path.startsWith("/api/reports/") || 
+            path.startsWith("/api/debug/") ||
+            path.startsWith("/uploads/") ||
+            path.startsWith("/api/productos") ||
+            path.startsWith("/api/categorias")) {
             chain.doFilter(req, res);
             return;
         }

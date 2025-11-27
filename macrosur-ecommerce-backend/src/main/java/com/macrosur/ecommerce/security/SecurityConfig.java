@@ -28,6 +28,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/test").permitAll()
                         .requestMatchers("/api/reports/**").permitAll() // TEMPORAL: Para probar reportes
                         .requestMatchers("/api/debug/**").permitAll() // TEMPORAL: Para debugging
+                        .requestMatchers("/api/categorias", "/api/categorias/**").permitAll() // TEMPORAL: Endpoints de categorías públicos
+                        .requestMatchers("/api/productos", "/api/productos/**").permitAll() // TEMPORAL: Endpoints de productos públicos
+                        .requestMatchers("/uploads/**").permitAll() // Servir archivos estáticos (imágenes)
                         .requestMatchers("/error", "/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )

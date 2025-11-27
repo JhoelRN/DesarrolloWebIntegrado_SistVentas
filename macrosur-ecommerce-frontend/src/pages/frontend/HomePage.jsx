@@ -11,15 +11,13 @@ const HomePage = () => {
 
     useEffect(() => {
         // Cargar productos destacados y en promoción
-        // Llama a la API (que consulta la tabla Productos, Variantes_Producto y Reglas_Descuento)
         const fetchFeatured = async () => {
             try {
-                // productsApi es un stub que devuelve datos falsos
                 const data = await productsApi.getFeaturedProducts(); 
-                setFeaturedProducts(data);
+                // Limitar a 8 productos para mejorar rendimiento
+                setFeaturedProducts(data.slice(0, 8));
             } catch (error) {
                 console.error("Error cargando productos destacados:", error);
-                // Mostrar un mensaje amigable al usuario
             }
         };
         fetchFeatured();
@@ -47,51 +45,37 @@ const HomePage = () => {
                 </Carousel>
             </Container>
 
-            {/* 2. Categorías Principales Destacadas (Servicios) */}
+            {/* 2. Beneficios y Servicios */}
             <Container className="my-5">
-                <h2 className="text-center mb-4 fw-light">Servicios y Categorías Top</h2>
-                <Row className="text-center">
-                    {/* Enlace a Libro de Reclamaciones (Contenido_Informativo) */}
-                    <Col md={3} className="mb-3">
-                        <Card className="shadow-sm h-100 border-warning">
+                <h2 className="text-center mb-4 fw-light">¿Por qué comprar con nosotros?</h2>
+                <Row className="text-center g-4">
+                    {/* Envío Gratis */}
+                    <Col md={4} className="mb-3">
+                        <Card className="shadow-sm h-100 border-0">
                             <Card.Body>
-                                <i className="bi bi-file-earmark-text display-4 text-warning"></i>
-                                <Card.Title className="mt-3">Libro de Reclamaciones</Card.Title>
-                                <Card.Text className="small text-muted">Formulario oficial para cualquier queja.</Card.Text>
-                                <Button variant="link" as={Link} to="/profile/claims">Reclama Aquí</Button>
+                                <i className="bi bi-truck display-4 text-primary"></i>
+                                <Card.Title className="mt-3">Envío Gratis</Card.Title>
+                                <Card.Text className="small text-muted">En compras mayores a S/ 150 en Lima Metropolitana</Card.Text>
                             </Card.Body>
                         </Card>
                     </Col>
-                    {/* Enlace a Novedades */}
-                    <Col md={3} className="mb-3">
-                        <Card className="shadow-sm h-100">
+                    {/* Cambios y Devoluciones */}
+                    <Col md={4} className="mb-3">
+                        <Card className="shadow-sm h-100 border-0">
                              <Card.Body>
-                                <i className="bi bi-box-seam display-4 text-info"></i>
-                                <Card.Title className="mt-3">Stock Consignado</Card.Title>
-                                <Card.Text className="small text-muted">Productos de proveedor con entrega rápida.</Card.Text>
-                                <Button variant="link" as={Link} to="/catalogo?tag=stock-consignado">Ver Novedades</Button>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    {/* Enlace a Retiro en Tienda */}
-                    <Col md={3} className="mb-3">
-                        <Card className="shadow-sm h-100">
-                            <Card.Body>
-                                <i className="bi bi-shop display-4 text-success"></i>
-                                <Card.Title className="mt-3">Retiro en Tienda</Card.Title>
-                                <Card.Text className="small text-muted">Recoge tu pedido sin costo adicional.</Card.Text>
-                                <Button variant="link" as={Link} to="/info/nuestras-tiendas">Puntos de Recojo</Button>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                    {/* Enlace a Devoluciones */}
-                    <Col md={3} className="mb-3">
-                        <Card className="shadow-sm h-100">
-                             <Card.Body>
-                                <i className="bi bi-arrow-return-left display-4 text-danger"></i>
+                                <i className="bi bi-arrow-return-left display-4 text-success"></i>
                                 <Card.Title className="mt-3">Cambios y Devoluciones</Card.Title>
-                                <Card.Text className="small text-muted">Política de 30 días garantizada.</Card.Text>
-                                <Button variant="link" as={Link} to="/info/politica-devoluciones">Leer Política</Button>
+                                <Card.Text className="small text-muted">30 días para cambios. Compra con confianza.</Card.Text>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    {/* Atención al Cliente */}
+                    <Col md={4} className="mb-3">
+                        <Card className="shadow-sm h-100 border-0">
+                            <Card.Body>
+                                <i className="bi bi-headset display-4 text-info"></i>
+                                <Card.Title className="mt-3">Atención al Cliente</Card.Title>
+                                <Card.Text className="small text-muted">Te ayudamos en todo el proceso de compra</Card.Text>
                             </Card.Body>
                         </Card>
                     </Col>
@@ -100,7 +84,7 @@ const HomePage = () => {
 
             {/* 3. Listado de Productos Destacados */}
             <Container className="my-5">
-                <h2 className="mb-4 fw-bold">Nuestros Más Vendidos</h2>
+                <h2 className="mb-4 fw-bold">Productos Destacados</h2>
                 <Row>
                     {featuredProducts.map(product => (
                         <Col key={product.id} sm={6} md={4} lg={3} className="mb-4">

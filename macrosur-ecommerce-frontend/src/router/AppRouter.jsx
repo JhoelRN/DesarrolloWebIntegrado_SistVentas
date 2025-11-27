@@ -56,7 +56,7 @@ const AppRouter = () => {
           {/* Rutas Públicas */}
           <Route path="/" element={<HomePage />} />
           <Route path="/catalogo" element={<CatalogPage />} />
-          <Route path="/producto/:sku" element={<ProductDetailPage />} />
+          <Route path="/producto/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/info/:slug" element={<InfoPage />} /> {/* Contenido_Informativo */}
           <Route path="/track" element={<TrackingPage />} />

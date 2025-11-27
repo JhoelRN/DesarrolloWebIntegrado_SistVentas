@@ -72,6 +72,12 @@ public class AdminUserService {
         u.setApellido(req.apellido);
         u.setCorreo_corporativo(req.correo_corporativo);
         u.setRole(role);
+        
+        // Actualizar contraseña solo si se proporciona una nueva
+        if (req.contrasena != null && !req.contrasena.trim().isEmpty()) {
+            u.setContrasena_hash(passwordEncoder.encode(req.contrasena));
+        }
+        
         UsuarioAdmin saved = userRepo.save(u);
         return toDtoMinimal(saved);
     }
@@ -100,15 +106,16 @@ public class AdminUserService {
         dto.correo_corporativo = u.getCorreo_corporativo();
         dto.activo = u.getActivo();
         if (u.getRole() != null) {
+            dto.rol_id = u.getRole().getRol_id(); // Agregar ID del rol
             RoleDto rd = new RoleDto();
             rd.rol_id = u.getRole().getRol_id();
-            rd.nombreRol = u.getRole().getNombreRol();
+            rd.nombre_rol = u.getRole().getNombreRol();
             dto.role = rd;
             if (u.getRole().getPermissions() != null) {
                 dto.permissions = u.getRole().getPermissions().stream().map(p -> {
                     PermissionDto pd = new PermissionDto();
                     pd.permiso_id = p.getPermiso_id();
-                    pd.nombrePermiso = p.getNombrePermiso();
+                    pd.nombre_permiso = p.getNombrePermiso();
                     return pd;
                 }).collect(Collectors.toSet());
             }
