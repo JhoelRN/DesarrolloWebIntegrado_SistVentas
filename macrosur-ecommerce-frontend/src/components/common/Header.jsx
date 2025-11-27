@@ -81,7 +81,7 @@ const Header = () => {
 
                         {/* 2. Iconos de Usuario y Carrito */}
                         <Nav className="ms-auto d-flex align-items-center">
-                            {/* Menú de Usuario */}
+                            {/* Menú de Usuario Admin (AuthContext) */}
                             {isAuthenticated ? (
                                 <Dropdown align="end" className="me-2">
                                     <Dropdown.Toggle variant="light" id="dropdown-basic" className="rounded-pill px-3">
@@ -107,9 +107,43 @@ const Header = () => {
                                 </Dropdown>
                             ) : (
                                 <>
-                                    <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
-                                        Iniciar Sesión
-                                    </Nav.Link>
+                                    {/* Botón Cliente si hay cliente logueado (clientAuth) */}
+                                    {(() => {
+                                        const clienteActual = localStorage.getItem('cliente');
+                                        if (clienteActual) {
+                                            const cliente = JSON.parse(clienteActual);
+                                            return (
+                                                <Dropdown align="end" className="me-2">
+                                                    <Dropdown.Toggle variant="success" size="sm" className="rounded-pill px-3">
+                                                        <i className="bi bi-person-check-fill me-1"></i> 
+                                                        {cliente.nombre}
+                                                    </Dropdown.Toggle>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Item as={Link} to="/cliente/perfil">
+                                                            <i className="bi bi-person me-2"></i>Mi Perfil
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Divider />
+                                                        <Dropdown.Item onClick={() => {
+                                                            localStorage.removeItem('cliente');
+                                                            localStorage.removeItem('clienteId');
+                                                            localStorage.removeItem('clientToken');
+                                                            window.location.reload();
+                                                        }}>
+                                                            <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                                                        </Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+                                    
+                                    {!localStorage.getItem('cliente') && (
+                                        <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
+                                            Iniciar Sesión
+                                        </Nav.Link>
+                                    )}
+                                    
                                     {/* Enlace visible al login de Admin (distinto al login de clientes) */}
                                     <Nav.Link as={Link} to="/admin/login" className="btn btn-outline-danger me-2 rounded-pill px-3 d-none d-lg-inline">
                                         Admin Login

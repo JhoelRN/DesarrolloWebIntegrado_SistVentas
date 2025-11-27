@@ -31,6 +31,8 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = req.getRequestURI();
         if (path.equals("/api/auth/login") || 
             path.equals("/api/auth/test") || 
+            path.startsWith("/api/clientes") || // Clientes usan X-Cliente-Id, no JWT
+            path.startsWith("/api/resenas") || // Reseñas usan X-Cliente-Id, no JWT
             path.startsWith("/api/reports/") || 
             path.startsWith("/api/debug/") ||
             path.startsWith("/uploads/") ||

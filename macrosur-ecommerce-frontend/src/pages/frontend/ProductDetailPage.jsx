@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Button, Card, Badge, Spinner, Alert, Tab, Tabs } from 'react-bootstrap';
 import LazyImage from '../../components/common/LazyImage';
+import ProductReviews from '../../components/product/ProductReviews';
 import { getProductById } from '../../api/products';
 
 const ProductDetailPage = () => {
@@ -220,9 +221,8 @@ const ProductDetailPage = () => {
                         </Tab>
                         <Tab eventKey="reseñas" title="Reseñas">
                             <Card className="border-0 shadow-sm">
-                                <Card.Body className="text-center text-muted py-5">
-                                    <i className="bi bi-star display-4"></i>
-                                    <p className="mt-3">Aún no hay reseñas para este producto</p>
+                                <Card.Body>
+                                    <ProductReviews productoId={producto.id} />
                                 </Card.Body>
                             </Card>
                         </Tab>

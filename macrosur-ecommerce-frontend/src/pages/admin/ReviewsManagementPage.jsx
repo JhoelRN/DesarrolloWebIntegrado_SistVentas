@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Table, Button, Badge, Spinner, Alert, Modal, Pagination } from 'react-bootstrap';
-import { listarResenas, aprobarResena, rechazarResena, eliminarResenaAdmin } from '../../api/adminResenas';
+import { Container, Row, Col, Card, Table, Button, Badge, Spinner, Alert, Modal, Form, Pagination } from 'react-bootstrap';
+import { obtenerResenasPendientes, aprobarResena, rechazarResena, eliminarResenaAdmin } from '../../api/resenas';
 import StarRating from '../../components/product/StarRating';
 
-const ReviewsPage = () => {
+const ReviewsManagementPage = () => {
   const [resenas, setResenas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +27,7 @@ const ReviewsPage = () => {
       setLoading(true);
       setError(null);
 
-      const data = await listarResenas(filtroEstado, currentPage, 10);
+      const data = await obtenerResenasPendientes(currentPage, 10, filtroEstado);
       
       setResenas(data.content || []);
       setTotalPages(data.totalPages || 0);
@@ -415,4 +415,4 @@ const ReviewsPage = () => {
   );
 };
 
-export default ReviewsPage;
+export default ReviewsManagementPage;

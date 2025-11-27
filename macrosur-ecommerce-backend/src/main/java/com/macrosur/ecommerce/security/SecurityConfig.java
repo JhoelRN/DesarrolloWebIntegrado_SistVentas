@@ -26,6 +26,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/test").permitAll()
+                        .requestMatchers("/api/clientes/**").permitAll() // TEMPORAL: Todas las rutas de clientes públicas (usa X-Cliente-Id)
+                        .requestMatchers("/api/resenas/**").permitAll() // TEMPORAL: Todas las rutas de reseñas públicas (usa X-Cliente-Id)
                         .requestMatchers("/api/reports/**").permitAll() // TEMPORAL: Para probar reportes
                         .requestMatchers("/api/debug/**").permitAll() // TEMPORAL: Para debugging
                         .requestMatchers("/api/categorias", "/api/categorias/**").permitAll() // TEMPORAL: Endpoints de categorías públicos

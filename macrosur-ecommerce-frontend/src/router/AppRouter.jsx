@@ -9,6 +9,8 @@ import CartPage from '../pages/frontend/CartPage';
 import LoginClientePage from '../pages/auth/LoginClientePage';
 import RegisterClientePage from '../pages/auth/RegisterClientePage';
 import AdminLoginPage from '../pages/auth/AdminLoginPage';
+import OAuthCallbackPage from '../pages/auth/OAuthCallbackPage';
+import ClientProfilePage from '../pages/frontend/ClientProfilePage';
 import InfoPage from '../pages/frontend/InfoPage';
 import TrackingPage from '../pages/frontend/TrackingPage';
 import ProfileRouter from './ProfileRouter';
@@ -64,6 +66,13 @@ const AppRouter = () => {
           {/* Autenticación */}
           <Route path="/login" element={<LoginClientePage />} />
           <Route path="/register" element={<RegisterClientePage />} />
+          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+
+          {/* Perfil de Cliente (Sin protección AuthContext porque usa clientAuth) */}
+          <Route 
+            path="/cliente/perfil" 
+            element={<ClientProfilePage />} 
+          />
 
           {/* Rutas Protegidas de Perfil de Cliente (Rol: CLIENTE) */}
           <Route 
