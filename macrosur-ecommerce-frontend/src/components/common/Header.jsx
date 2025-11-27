@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Navbar, Nav, Container, Form, Button, InputGroup, Dropdown } from 'react-bootstrap';
+import { Navbar, Nav, Container, Form, Button, InputGroup, Dropdown, Badge } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import * as categoriasApi from '../../api/categorias';
@@ -9,21 +9,27 @@ const Header = () => {
     const { isAuthenticated, user, userRole, logout } = useAuth();
     const { cartCount } = useCart();
     const navigate = useNavigate();
+    
     const [categorias, setCategorias] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [expanded, setExpanded] = useState(false);
 
-    // Cargar categorías al montar el componente
+    // Cargar categorías
     useEffect(() => {
         const fetchCategorias = async () => {
             try {
-                const data = await categoriasApi.getCategorias({ activo: true, size: 10 });
-                // Filtrar solo categorías principales (sin padre) y visibles al cliente
-                const principales = (data.content || []).filter(
-                    cat => !cat.categoriaPadreId && cat.visibleCliente
-                );
-                setCategorias(principales.slice(0, 5)); // Máximo 5 para el navbar
+                const data = await categoriasApi.getCategorias({ activo: true, size: 20 });
+                const principales = (data.content || []).filter(c => !c.categoriaPadreId && c.visibleCliente);
+                setCategorias(principales);
             } catch (error) {
-                console.error('Error al cargar categorías:', error);
+                console.warn('Modo offline: usando categorías locales.');
+               setCategorias([
+                    { categoriaId: 1, nombre: 'Cortinas y Persianas' },
+                    { categoriaId: 2, nombre: 'Alfombras y Tapetes' },
+                    { categoriaId: 3, nombre: 'Ropa de Cama' },
+                    { categoriaId: 4, nombre: 'Cojines y Fundas' },
+                    { categoriaId: 5, nombre: 'Decoración de Pared' }
+                ]);
             }
         };
         fetchCategorias();
@@ -33,13 +39,28 @@ const Header = () => {
         e.preventDefault();
         if (searchTerm.trim()) {
             navigate(`/catalogo?search=${encodeURIComponent(searchTerm.trim())}`);
-            setSearchTerm(''); // Limpiar después de buscar
+            setExpanded(false);
+        }
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+        setExpanded(false);
+    };
+
+    const handleAccountClick = () => {
+        if (isAuthenticated) {
+            navigate('/cliente/perfil');
+        } else {
+            navigate('/login');
         }
     };
 
     return (
-        <header className="fixed-top shadow-sm">
-            {/* Top Bar de Servicios y Ayuda */}
+        <header className="fixed-top bg-white shadow-sm" style={{ zIndex: 1030 }}>
+            {/* --- NIVEL 1: BARRA SUPERIOR --- */}
+
             <div className="bg-light border-bottom py-1 small">
                 <Container className="d-flex justify-content-end">
                     <Nav>
@@ -53,138 +74,136 @@ const Header = () => {
                 </Container>
             </div>
 
-            {/* Navbar Principal */}
-            <Navbar bg="white" expand="lg" className="py-3">
+            {/* --- NIVEL 2: HEADER PRINCIPAL --- */}
+            <Navbar bg="white" expand="lg" className="py-3" expanded={expanded}>
                 <Container>
-                    <Navbar.Brand as={Link} to="/" className="fw-bold fs-3 text-primary">
-                        MACROSUR
+                    {/* Logo */}
+                    <Navbar.Brand as={Link} to="/" className="fw-bold fs-3 text-primary me-lg-4 d-flex align-items-center" onClick={() => setExpanded(false)}>
+                        <div className="bg-primary text-white rounded px-2 me-1 pb-1" style={{ fontSize: '1.8rem', lineHeight: '1' }}>M</div>
+                        ACROSUR
                     </Navbar.Brand>
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                    <Navbar.Collapse id="basic-navbar-nav">
+
+                    <Navbar.Toggle 
+                        aria-controls="navbar-mobile-content" 
+                        onClick={() => setExpanded(expanded ? false : true)}
+                        className="border-0"
+                    />
+
+                    {/* BUSCADOR CORREGIDO (Estilo Unificado) */}
+                    <Form className="d-none d-lg-flex flex-grow-1 mx-lg-5" onSubmit={handleSearch}>
+                        <InputGroup>
+                            <Form.Control
+                                type="search"
+                                placeholder="¿Qué estás buscando hoy?"
+                                className="border-secondary border-opacity-25 py-2 border-end-0 shadow-none"
+                                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }} 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <Button 
+                                variant="outline-secondary" 
+                                type="submit" 
+                                className="border-secondary border-opacity-25 bg-white text-secondary px-4 border-start-0 shadow-none"
+                                style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                            >
+                                <i className="bi bi-search"></i>
+                            </Button>
+                        </InputGroup>
+                    </Form>
+
+                    {/* Iconos Derecha */}
+                    <div className="d-none d-lg-flex align-items-center gap-4 ms-auto">
                         
-                        {/* 1. Barra de Búsqueda Centrada */}
-                        <Form className="d-flex mx-auto" onSubmit={handleSearch} style={{ maxWidth: '500px' }}>
-                            <InputGroup>
-                                <Form.Control
-                                    type="search"
-                                    placeholder="Buscar productos..."
-                                    className="me-2 rounded-start"
-                                    aria-label="Search"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                                <Button variant="primary" type="submit" className="rounded-end" disabled={!searchTerm.trim()}>
-                                    <i className="bi bi-search"></i>
-                                </Button>
-                            </InputGroup>
-                        </Form>
-
-                        {/* 2. Iconos de Usuario y Carrito */}
-                        <Nav className="ms-auto d-flex align-items-center">
-                            {/* Menú de Usuario Admin (AuthContext) */}
-                            {isAuthenticated ? (
-                                <Dropdown align="end" className="me-2">
-                                    <Dropdown.Toggle variant="light" id="dropdown-basic" className="rounded-pill px-3">
-                                        <i className="bi bi-person-circle me-1"></i> 
-                                        {user?.name || 'Mi Cuenta'}
-                                    </Dropdown.Toggle>
-
-                                    <Dropdown.Menu>
-                                        {userRole === 'CLIENTE' && (
-                                            <>
-                                                <Dropdown.Item as={Link} to="/profile">Mi Perfil</Dropdown.Item>
-                                                <Dropdown.Item as={Link} to="/profile/orders">Mis Pedidos</Dropdown.Item>
-                                            </>
-                                        )}
-                                        {(userRole === 'ADMIN' || userRole === 'GESTOR') && (
-                                            <>
-                                                <Dropdown.Item as={Link} to="/admin/dashboard" className="text-danger">Panel Admin</Dropdown.Item>
-                                                <Dropdown.Divider />
-                                            </>
-                                        )}
-                                        <Dropdown.Item onClick={() => { navigate('/'); setTimeout(() => logout(), 100); }}>Cerrar Sesión</Dropdown.Item>
-                                    </Dropdown.Menu>
-                                </Dropdown>
-                            ) : (
-                                <>
-                                    {/* Botón Cliente si hay cliente logueado (clientAuth) */}
-                                    {(() => {
-                                        const clienteActual = localStorage.getItem('cliente');
-                                        if (clienteActual) {
-                                            const cliente = JSON.parse(clienteActual);
-                                            return (
-                                                <Dropdown align="end" className="me-2">
-                                                    <Dropdown.Toggle variant="success" size="sm" className="rounded-pill px-3">
-                                                        <i className="bi bi-person-check-fill me-1"></i> 
-                                                        {cliente.nombre}
-                                                    </Dropdown.Toggle>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Item as={Link} to="/cliente/perfil">
-                                                            <i className="bi bi-person me-2"></i>Mi Perfil
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Divider />
-                                                        <Dropdown.Item onClick={() => {
-                                                            localStorage.removeItem('cliente');
-                                                            localStorage.removeItem('clienteId');
-                                                            localStorage.removeItem('clientToken');
-                                                            window.location.reload();
-                                                        }}>
-                                                            <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                                                        </Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-                                    
-                                    {!localStorage.getItem('cliente') && (
-                                        <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
-                                            Iniciar Sesión
-                                        </Nav.Link>
+                        {/* Zona Usuario */}
+                        {isAuthenticated ? (
+                            <Dropdown align="end">
+                                <Dropdown.Toggle variant="white" className="d-flex align-items-center border-0 p-0 text-dark bg-transparent remove-caret">
+                                    <i className="bi bi-person-circle fs-2 text-dark me-2"></i>
+                                    <div className="text-start lh-1">
+                                        <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>Hola,</small>
+                                        <span className="fw-bold text-truncate" style={{ maxWidth: '100px', display: 'inline-block' }}>
+                                            {user?.name?.split(' ')[0]}
+                                        </span>
+                                    </div>
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu className="shadow border-0 mt-3">
+                                    <Dropdown.Header>Mi Cuenta</Dropdown.Header>
+                                    <Dropdown.Item as={Link} to="/cliente/perfil"><i className="bi bi-person-gear me-2"></i> Perfil</Dropdown.Item>
+                                    <Dropdown.Item as={Link} to="/cliente/perfil/orders"><i className="bi bi-box-seam me-2"></i> Mis Pedidos</Dropdown.Item>
+                                    {(userRole === 'ADMIN' || userRole === 'GESTOR') && (
+                                        <>
+                                            <Dropdown.Divider />
+                                            <Dropdown.Item as={Link} to="/admin/dashboard" className="text-primary fw-bold">Panel Admin</Dropdown.Item>
+                                        </>
                                     )}
-                                    
-                                    {/* Enlace visible al login de Admin (distinto al login de clientes) */}
-                                    <Nav.Link as={Link} to="/admin/login" className="btn btn-outline-danger me-2 rounded-pill px-3 d-none d-lg-inline">
-                                        Admin Login
-                                    </Nav.Link>
-                                </>
+                                    <Dropdown.Divider />
+                                    <Dropdown.Item onClick={handleLogout} className="text-danger">Cerrar Sesión</Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        ) : (
+                            <Link to="/login" className="d-flex align-items-center text-decoration-none text-dark" onClick={handleAccountClick}>
+                                <i className="bi bi-person fs-2 me-2"></i>
+                                <div className="lh-1">
+                                    <small className="text-muted d-block" style={{ fontSize: '0.75rem' }}>Bienvenido</small>
+                                    <span className="fw-bold small">Ingresa / Regístrate</span>
+                                </div>
+                            </Link>
+                        )}
+
+                        {/* Carrito */}
+                        <Link to="/carrito" className="position-relative text-dark d-flex align-items-center text-decoration-none">
+                            <i className="bi bi-cart3 fs-2"></i>
+                            {cartCount > 0 && (
+                                <Badge 
+                                    bg="danger" 
+                                    pill 
+                                    className="position-absolute top-0 start-100 translate-middle border border-2 border-white"
+                                    style={{ fontSize: '0.7rem', padding: '0.35em 0.5em' }}
+                                >
+                                    {cartCount}
+                                </Badge>
                             )}
-                            
-                            {/* Icono de Carrito */}
-                            <Nav.Link as={Link} to="/cart" className="position-relative">
-                                <i className="bi bi-cart3 fs-4"></i>
-                                {cartCount > 0 && (
-                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        {cartCount}
-                                    </span>
-                                )}
-                            </Nav.Link>
-                        </Nav>
-                    </Navbar.Collapse>
+                        </Link>
+                    </div>
                 </Container>
             </Navbar>
 
-            {/* Navbar de Categorías Dinámicas */}
-            <Navbar bg="dark" variant="dark" className="py-2 d-none d-lg-block">
+            {/* --- NIVEL 3: BARRA AZUL --- */}
+            <div className="bg-primary d-none d-lg-block">
                 <Container>
-                    <Nav className="me-auto">
-                        <Nav.Link as={Link} to="/catalogo" className="fw-semibold text-white">
-                            <i className="bi bi-grid-3x3-gap me-1"></i> Todas las Categorías
-                        </Nav.Link>
-                        {categorias.map((categoria) => (
-                            <Nav.Link 
-                                key={categoria.categoriaId}
-                                as={Link} 
-                                to={`/catalogo?categoria=${categoria.categoriaId}`}
-                                className="text-white-50"
+                    <Nav className="align-items-center">
+                        <Dropdown>
+                            <Dropdown.Toggle 
+                                variant="primary" 
+                                className="rounded-0 fw-bold px-3 border-end border-white border-opacity-25 py-2 d-flex align-items-center"
+                                style={{ boxShadow: 'none' }}
                             >
-                                {categoria.nombre}
-                            </Nav.Link>
-                        ))}
+                                <i className="bi bi-list fs-5 me-2"></i> Categorías
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className="shadow border-0 rounded-0 mt-0 w-100" style={{ minWidth: '220px' }}>
+                                {categorias.map((cat) => (
+                                    <Dropdown.Item 
+                                        key={cat.categoriaId} 
+                                        as={Link} 
+                                        to={`/catalogo?categoria=${cat.categoriaId}`}
+                                        className="py-2 border-bottom"
+                                    >
+                                        {cat.nombre}
+                                    </Dropdown.Item>
+                                ))}
+                                <Dropdown.Item as={Link} to="/catalogo" className="py-2 text-primary fw-bold text-center bg-light">
+                                    Ver Todo el Catálogo
+                                </Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
+
+                        <Nav.Link as={Link} to="/" className="text-white px-4 hover-light py-2">Inicio</Nav.Link>
+                        <Nav.Link as={Link} to="/catalogo" className="text-white px-4 hover-light py-2">Catálogo</Nav.Link>
+                        <Nav.Link as={Link} to="info/nosotros" className="text-white px-4 hover-light py-2">Nosotros</Nav.Link>
+                        <Nav.Link as={Link} to="/info/contacto" className="text-white px-4 hover-light py-2">Contacto</Nav.Link>
                     </Nav>
                 </Container>
-            </Navbar>
+            </div>
         </header>
     );
 };

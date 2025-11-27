@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="8ec6e29e-642f-45b8-8c82-7f0589a38d2c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/api/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/api/auth.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/HeroCarousel.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/HeroCarousel.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/ImageSelector.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/ImageSelector.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/StockIndicator.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/StockIndicator.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/VarianSelector.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/components/product/VarianSelector.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/pages/frontend/CartPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/pages/frontend/CartPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/pages/frontend/ChekoutPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/macrosur-ecommerce-frontend/src/pages/frontend/CheckoutPage.jsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="364Hr5HLXV2kYQ7HoCSc06TgamG" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/ad_ri/OneDrive/Documents/NetBeansProjects/DesarrolloWebIntegrado_SistVentas",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26830.84" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.26830.84" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8ec6e29e-642f-45b8-8c82-7f0589a38d2c" name="Changes" comment="" />
+      <created>1764259120893</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1764259120893</updated>
+      <workItem from="1764259123048" duration="25000" />
+    </task>
+    <servers />
+  </component>
+</project>

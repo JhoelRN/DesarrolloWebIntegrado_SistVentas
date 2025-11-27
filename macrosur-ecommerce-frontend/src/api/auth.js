@@ -1,77 +1,47 @@
-const API_BASE = 'http://localhost:8081/api';
+import axios from 'axios';
 
-export const login = async (email, password, isAdmin) => {
-    try {
-        // Llamada real al backend Spring Boot
-        const res = await fetch(`${API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ 
-                correo_corporativo: email,  // CORRECCIÓN: Backend espera 'correo_corporativo'
-                contrasena: password        // CORRECCIÓN: Backend espera 'contrasena'
-            }),
-        });
+// URL BASE: Apunta a tu futuro backend Java EE (cuando exista)
+const API_URL = 'http://localhost:8080/MacroSur_JAXRS/api/auth'; 
 
-        if (!res.ok) {
-            throw new Error('Credenciales no válidas');
+
+const MOCK_MODE = true; 
+
+const mockDelay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const login = async (credentials) => {
+    if (MOCK_MODE) {
+        await mockDelay(1000); 
+        
+        // Simular error si el correo es "error@test.com"
+        if (credentials.email === "error@test.com") {
+            throw { response: { data: { message: "Credenciales inválidas" } } };
         }
-
-        const data = await res.json();
         
-        // Simplemente retornamos el token, los datos del usuario se obtendrán después
-        return { 
-            token: data.token
-        };
-    } catch (error) {
-        console.error('Error en login:', error);
-        throw new Error("Credenciales no válidas.");
-    }
-};
-
-// Función para obtener datos completos del usuario autenticado
-export const getCurrentUser = async (token) => {
-    try {
-        const res = await fetch(`${API_BASE}/auth/me`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!res.ok) {
-            throw new Error('No se pudo obtener información del usuario');
-        }
-
-        const userData = await res.json();
-        
-        // Retornar datos estructurados del usuario
         return {
-            id: userData.usuario_admin_id,
-            name: `${userData.nombre} ${userData.apellido}`,
-            email: userData.correo_corporativo,
-            rolId: userData.role?.rol_id,
-            roleName: userData.role?.nombre_rol || 'UNKNOWN',
-            permissions: userData.permissions ? userData.permissions.map(p => p.nombre_permiso) : [],
-            isActive: userData.activo
+            token: "mock-jwt-token-xyz-123",
+            user: {
+                id: 1,
+                nombre: "Usuario Prueba",
+                email: credentials.email,
+                role: "CLIENTE"
+            }
         };
-    } catch (error) {
-        console.error('Error obteniendo datos del usuario:', error);
-        throw error;
     }
+    
+    // Modo Real (Se activará cuando MOCK_MODE sea false)
+    const response = await axios.post(`${API_URL}/login`, credentials);
+    return response.data;
 };
 
-// Función para validar token (útil para AuthContext)
-export const validateToken = async (token) => {
-    try {
-        const res = await fetch(`${API_BASE}/auth/validate`, {
-            method: 'POST',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return res.ok;
-    } catch (error) {
-        return false;
+export const register = async (userData) => {
+    if (MOCK_MODE) {
+        await mockDelay(1500);
+        return {
+            success: true,
+            message: "Usuario registrado exitosamente"
+        };
     }
+
+    const response = await axios.post(`${API_URL}/register`, userData);
+    return response.data;
 };

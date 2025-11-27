@@ -4,14 +4,18 @@
  */
 
 import axios from 'axios';
+import api from './axios';
 
 const API_URL = 'http://localhost:8081/api/categorias';
+
 
 // Obtener token de autenticación (si existe)
 const getAuthHeader = () => {
   const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
+
+
 
 /**
  * Listar todas las categorías activas
@@ -228,17 +232,20 @@ export const buscarCategorias = async (searchTerm) => {
  * Público
  */
 export const getCategorias = async (filters = {}) => {
-  try {
-    const response = await axios.get(API_URL, {
-      params: filters,
-      headers: {
-        ...getAuthHeader(),
-        'Content-Type': 'application/json'
-      }
-    });
-    return { content: response.data };
-  } catch (error) {
-    console.error('Error al obtener categorías:', error);
-    throw error;
-  }
+    try {
+        // Esto llamará a: http://localhost:8081/api/categorias
+        const response = await api.get('/categorias', { params: filters });
+        
+        // Adaptamos la respuesta si es necesario
+        // (Si Java devuelve una lista directa, la envolvemos en un objeto para que tu tabla no falle)
+        const data = response.data;
+        if (Array.isArray(data)) {
+            return { content: data };
+        }
+        return data; 
+    } catch (error) {
+        console.error('Error conectando con el Backend:', error);
+        // Fallback de emergencia (opcional)
+        return { content: [] };
+    }
 };

@@ -1,14 +1,13 @@
 /**
  * ImageSelector Component
- * 
- * Componente optimizado para seleccionar imágenes de productos con 3 opciones:
+ * * Componente optimizado para seleccionar imágenes de productos con 3 opciones:
  * 1. URL Manual: Ingresar URL externa
  * 2. Upload Local: Subir archivo desde computadora
  * 3. Biblioteca Online: Buscar imágenes en Unsplash por categoría
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Modal, Button, Form, Row, Col, Card, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Modal, Button, Form, Row, Col, Card, Spinner, Alert, Badge, Nav } from 'react-bootstrap';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8081/api';
@@ -56,8 +55,10 @@ const LazyImage = ({ src, alt, style, className, onClick, isSelected }) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const img = entry.target;
-            img.src = img.dataset.src;
-            observer.unobserve(img);
+            if (img.dataset.src) {
+                img.src = img.dataset.src;
+                observer.unobserve(img);
+            }
           }
         });
       },
@@ -71,7 +72,7 @@ const LazyImage = ({ src, alt, style, className, onClick, isSelected }) => {
         observer.unobserve(imgRef.current);
       }
     };
-  }, []);
+  }, [src]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -136,7 +137,7 @@ const LazyImage = ({ src, alt, style, className, onClick, isSelected }) => {
 const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal, codigoProducto }) => {
   const [selectedUrl, setSelectedUrl] = useState(currentImageUrl || '');
   const [customUrl, setCustomUrl] = useState('');
-  const [activeTab, setActiveTab] = useState('url'); // 'url', 'upload', 'search'
+  const [activeTab, setActiveTab] = useState('url'); // 'url', 'upload', 'search', 'library'
   const [previewLoading, setPreviewLoading] = useState(false);
   
   // Upload de archivos
@@ -242,7 +243,12 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
     } catch (error) {
       console.error('❌ Error al subir imagen:', error);
       console.error('Detalles:', error.response?.data);
-      setUploadError(error.response?.data?.error || 'Error al subir la imagen');
+      // Fallback para demo si no hay backend
+      if (!error.response) {
+         setUploadError('No se pudo conectar con el servidor. (Modo Demo: Usa la pestaña URL o Biblioteca)');
+      } else {
+         setUploadError(error.response?.data?.error || 'Error al subir la imagen');
+      }
     } finally {
       setUploading(false);
     }
@@ -274,7 +280,11 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
       
     } catch (error) {
       console.error('Error al buscar imágenes:', error);
-      setSearchError('Error al buscar imágenes. Intenta de nuevo.');
+      if(!error.response) {
+          setSearchError('Error de conexión con el backend (Modo Demo)');
+      } else {
+          setSearchError('Error al buscar imágenes. Intenta de nuevo.');
+      }
     } finally {
       setSearching(false);
     }
@@ -316,14 +326,21 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
       </Modal.Header>
 
       <Modal.Body>
-        {/* Tabs para las 3 opciones */}
-        <div className="mb-3 d-flex gap-2">
+        {/* Tabs para las opciones */}
+        <div className="mb-3 d-flex gap-2 flex-wrap">
           <Button
             variant={activeTab === 'url' ? 'primary' : 'outline-primary'}
             size="sm"
             onClick={() => setActiveTab('url')}
           >
             📎 URL Manual
+          </Button>
+          <Button
+            variant={activeTab === 'library' ? 'primary' : 'outline-primary'}
+            size="sm"
+            onClick={() => setActiveTab('library')}
+          >
+            🖼️ Biblioteca
           </Button>
           <Button
             variant={activeTab === 'upload' ? 'primary' : 'outline-primary'}
@@ -337,11 +354,11 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
             size="sm"
             onClick={() => setActiveTab('search')}
           >
-            🔍 Biblioteca Online
+            🔍 Buscar Online
           </Button>
         </div>
 
-        {/* Tab 1: URL Manual */}
+        {/* Tab: URL Manual */}
         {activeTab === 'url' && (
           <div>
             <p className="text-muted mb-3">
@@ -362,7 +379,34 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
           </div>
         )}
 
-        {/* Tab 2: Upload de Archivo */}
+        {/* Tab: Biblioteca Predefinida (NUEVO) */}
+        {activeTab === 'library' && (
+             <div>
+                <p className="text-muted mb-3">Selecciona una imagen de nuestra biblioteca:</p>
+                <Row className="g-2" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    {IMAGE_LIBRARY.map((img) => (
+                        <Col xs={4} md={3} key={img.id}>
+                            <Card 
+                                className={`cursor-pointer h-100 ${selectedUrl === img.url ? 'border-primary border-3' : ''}`}
+                                onClick={() => handleSelectFromLibrary(img.url)}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <LazyImage 
+                                    src={img.url} 
+                                    className="card-img-top" 
+                                    style={{ height: '80px', objectFit: 'cover' }} 
+                                />
+                                <div className="p-1 text-center">
+                                    <small style={{ fontSize: '0.7rem' }}>{img.name}</small>
+                                </div>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+             </div>
+        )}
+
+        {/* Tab: Upload de Archivo */}
         {activeTab === 'upload' && (
           <div>
             <p className="text-muted mb-3">
@@ -418,7 +462,7 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
           </div>
         )}
 
-        {/* Tab 3: Búsqueda Online */}
+        {/* Tab: Búsqueda Online */}
         {activeTab === 'search' && (
           <div>
             <p className="text-muted mb-3">
@@ -454,9 +498,6 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
                   )}
                 </Button>
               </div>
-              <Form.Text className="text-muted">
-                Busca por categoría o descripción del producto
-              </Form.Text>
             </Form.Group>
             
             {/* Resultados de búsqueda */}
@@ -478,7 +519,6 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
                         <small className="text-truncate d-block" title={image.description}>
                           {image.description || 'Sin descripción'}
                         </small>
-                        <small className="text-muted">por {image.author}</small>
                       </Card.Body>
                     </Card>
                   </Col>
@@ -488,10 +528,10 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
           </div>
         )}
 
-        {/* Vista Previa */}
+        {/* Vista Previa General */}
         {selectedUrl && (
-          <div className="mt-4">
-            <h6>Vista Previa:</h6>
+          <div className="mt-4 border-top pt-3">
+            <h6>Vista Previa Seleccionada:</h6>
             <div className="text-center p-3 border rounded bg-light" style={{ position: 'relative' }}>
               {previewLoading && (
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
@@ -512,11 +552,11 @@ const ImageSelector = ({ currentImageUrl, onSelectImage, showModal, onCloseModal
                 onLoad={() => setPreviewLoading(false)}
                 onError={(e) => {
                   setPreviewLoading(false);
-                  e.target.src = 'https://placehold.co/400x300/FF6B6B/FFFFFF?text=Error';
+                  e.target.src = 'https://placehold.co/400x300/FF6B6B/FFFFFF?text=Error+Carga';
                 }}
               />
               <div className="mt-2">
-                <small className="text-muted d-block" style={{ wordBreak: 'break-all' }}>
+                <small className="text-muted d-block text-truncate" style={{ maxWidth: '100%' }}>
                   {selectedUrl}
                 </small>
               </div>
