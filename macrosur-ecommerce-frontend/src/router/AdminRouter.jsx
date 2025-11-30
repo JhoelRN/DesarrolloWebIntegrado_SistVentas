@@ -5,7 +5,7 @@ import { Container } from 'react-bootstrap';
 import DashboardAdminPage from '../pages/admin/DashboardAdminPage';
 import ProductsPage from '../pages/admin/ProductsPage';
 import CategoriesPage from '../pages/admin/CategoriesPage';
-import OrdersPage from '../pages/admin/OrdersPage';
+import CustomerOrdersPage from '../pages/admin/CustomerOrdersPage';
 import CustomersPage from '../pages/admin/CustomersPage';
 import UsersPage from '../pages/admin/UsersPage';
 import InventoryPage from '../pages/admin/InventoryPage';
@@ -16,6 +16,10 @@ import RestockPage from '../pages/admin/RestockPage';
 import ReviewsPage from '../pages/admin/ReviewsPage';
 import ClaimsPage from '../pages/admin/ClaimsPage';
 import ReportsTestPage from '../pages/admin/ReportsTestPage';
+// Páginas del módulo de logística
+import RepositionOrdersPage from '../pages/admin/RepositionOrdersPage';
+import AlertsPage from '../pages/admin/AlertsPage';
+import TrackingPage from '../pages/admin/TrackingPage';
 
 const NotFound = () => <Container className="mt-4"><h2 className="text-danger">404 | Admin - Ruta No Válida</h2></Container>;
 
@@ -38,14 +42,18 @@ const AdminRouter = () => {
         <Route path="/categories" element={<CategoriesPage />} />
 
         {/* Rutas de gestión de ventas */}
-        <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/orders" element={<CustomerOrdersPage />} />
         <Route path="/promotions" element={<PromotionsPage />} />
         <Route path="/customers" element={<CustomersPage />} />
 
         {/* Rutas de logística */}
         <Route path="/inventory" element={<InventoryPage />} />
-        <Route path="/restock" element={<RestockPage />} />
         <Route path="/logistics" element={<LogisticsPage />} />
+        
+        {/* Rutas del módulo de logística avanzado */}
+        <Route path="/logistica/ordenes-reposicion" element={<RepositionOrdersPage />} />
+        <Route path="/logistica/alarmas" element={<AlertsPage />} />
+        <Route path="/logistica/seguimiento" element={<TrackingPage />} />
 
         {/* Rutas de administración */}
         <Route path="/users" element={<UsersPage />} />

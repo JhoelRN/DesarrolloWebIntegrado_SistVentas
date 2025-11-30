@@ -48,7 +48,7 @@ const LayoutAdmin = () => {
           
           <PermissionGuard requiredPermission="GESTIONAR_PEDIDOS">
             <Nav.Link as={Link} to="/admin/orders" className="text-white">
-              <i className="bi bi-cart-check me-2"></i>Pedidos
+              <i className="bi bi-cart-check me-2"></i>Pedidos Clientes
             </Nav.Link>
           </PermissionGuard>
           
@@ -76,14 +76,26 @@ const LayoutAdmin = () => {
           </PermissionGuard>
           
           <PermissionGuard requiredPermission="GESTIONAR_STOCK">
-            <Nav.Link as={Link} to="/admin/restock" className="text-white">
-              <i className="bi bi-arrow-repeat me-2"></i>Reposición
+            <Nav.Link as={Link} to="/admin/logistica/ordenes-reposicion" className="text-white">
+              <i className="bi bi-clipboard-check me-2"></i>Órdenes Reposición
+            </Nav.Link>
+          </PermissionGuard>
+          
+          <PermissionGuard requiredPermission="GESTIONAR_STOCK">
+            <Nav.Link as={Link} to="/admin/logistica/alarmas" className="text-white">
+              <i className="bi bi-exclamation-triangle me-2"></i>Alarmas Stock
             </Nav.Link>
           </PermissionGuard>
           
           <PermissionGuard requiredPermission="VER_LOGISTICA">
             <Nav.Link as={Link} to="/admin/logistics" className="text-white">
               <i className="bi bi-truck me-2"></i>Operadores
+            </Nav.Link>
+          </PermissionGuard>
+          
+          <PermissionGuard requiredPermission="VER_LOGISTICA">
+            <Nav.Link as={Link} to="/admin/logistica/seguimiento" className="text-white">
+              <i className="bi bi-geo-alt me-2"></i>Seguimiento
             </Nav.Link>
           </PermissionGuard>
           

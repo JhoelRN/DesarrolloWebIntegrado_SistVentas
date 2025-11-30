@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Confirmación de Pedido</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 40px 30px; text-align: center; color: white;">
+                            <h1 style="margin: 0; font-size: 28px;">✓ ¡Pedido Confirmado!</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Gracias por tu compra</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">
+                                Hola <strong th:text="${customerName}">Cliente</strong>,
+                            </p>
+                            <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 0 0 25px 0;">
+                                Hemos recibido tu pedido y lo estamos preparando para el envío. 
+                                Te enviaremos una notificación cuando tu paquete esté en camino.
+                            </p>
+
+                            <!-- Order Info -->
+                            <table width="100%" cellpadding="10" style="background-color: #f8f9fa; border-radius: 5px; margin-bottom: 25px;">
+                                <tr>
+                                    <td>
+                                        <strong style="color: #495057;">Número de Pedido:</strong><br/>
+                                        <span style="font-size: 18px; color: #dc3545;" th:text="${orderId}">#12345</span>
+                                    </td>
+                                    <td align="right">
+                                        <strong style="color: #495057;">Fecha:</strong><br/>
+                                        <span th:text="${#dates.format(orderDate, 'dd/MM/yyyy')}">28/11/2025</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Items -->
+                            <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Detalles del Pedido</h3>
+                            <table width="100%" cellpadding="10" style="border-collapse: collapse; margin-bottom: 20px;">
+                                <thead>
+                                    <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                                        <th align="left" style="padding: 10px; color: #495057; font-size: 12px;">Producto</th>
+                                        <th align="center" style="padding: 10px; color: #495057; font-size: 12px;">Cant.</th>
+                                        <th align="right" style="padding: 10px; color: #495057; font-size: 12px;">Precio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${items}" style="border-bottom: 1px solid #dee2e6;">
+                                        <td style="padding: 12px;">
+                                            <strong th:text="${item.productName}" style="color: #333;">Producto</strong>
+                                            <br/>
+                                            <small th:text="${item.variantName}" style="color: #6c757d;">Variante</small>
+                                        </td>
+                                        <td align="center" style="padding: 12px;" th:text="${item.quantity}">1</td>
+                                        <td align="right" style="padding: 12px;">
+                                            <strong th:text="'S/ ' + ${item.price}" style="color: #dc3545;">S/ 0.00</strong>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Total -->
+                            <table width="100%" cellpadding="10">
+                                <tr>
+                                    <td align="right" colspan="2">
+                                        <table align="right" style="min-width: 250px;">
+                                            <tr>
+                                                <td style="padding: 8px; color: #666;">Subtotal:</td>
+                                                <td align="right" style="padding: 8px;" th:text="'S/ ' + ${subtotal}">S/ 0.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px; color: #666;">Envío:</td>
+                                                <td align="right" style="padding: 8px;" th:text="'S/ ' + ${shipping}">S/ 0.00</td>
+                                            </tr>
+                                            <tr style="border-top: 2px solid #dee2e6;">
+                                                <td style="padding: 12px 8px; font-size: 18px;"><strong>Total:</strong></td>
+                                                <td align="right" style="padding: 12px 8px; font-size: 18px; color: #dc3545;">
+                                                    <strong th:text="'S/ ' + ${total}">S/ 0.00</strong>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Shipping Address -->
+                            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 25px 0;">
+                                <h4 style="margin: 0 0 10px 0; color: #333;">Dirección de Envío</h4>
+                                <p style="margin: 0; color: #666; line-height: 1.6;" th:text="${shippingAddress}">
+                                    Av. Principal 123<br/>
+                                    Lima, Perú
+                                </p>
+                            </div>
+
+                            <!-- CTA Button -->
+                            <div align="center" style="margin: 30px 0;">
+                                <a th:href="${trackingUrl}" 
+                                   style="display: inline-block; padding: 15px 40px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+                                    Rastrear Mi Pedido
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; color: #6c757d; font-size: 12px;">
+                            <p style="margin: 0 0 10px 0;"><strong>Macrosur E-commerce</strong></p>
+                            <p style="margin: 0 0 5px 0;">¿Necesitas ayuda? Contáctanos en support@macrosur.com</p>
+                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #999;">
+                                Este email fue enviado automáticamente, por favor no responder.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

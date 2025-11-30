@@ -6,6 +6,8 @@ import HomePage from '../pages/frontend/HomePage';
 import CatalogPage from '../pages/frontend/CatalogPage';
 import ProductDetailPage from '../pages/frontend/ProductDetailPage';
 import CartPage from '../pages/frontend/CartPage';
+import CheckoutPage from '../pages/frontend/CheckoutPage';
+import MyOrdersPage from '../pages/frontend/MyOrdersPage';
 import LoginClientePage from '../pages/auth/LoginClientePage';
 import RegisterClientePage from '../pages/auth/RegisterClientePage';
 import AdminLoginPage from '../pages/auth/AdminLoginPage';
@@ -60,6 +62,8 @@ const AppRouter = () => {
           <Route path="/catalogo" element={<CatalogPage />} />
           <Route path="/producto/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/mis-pedidos" element={<MyOrdersPage />} />
           <Route path="/info/:slug" element={<InfoPage />} /> {/* Contenido_Informativo */}
           <Route path="/track" element={<TrackingPage />} />
 

@@ -9,17 +9,24 @@ import { Container, Row, Col, Button, Card, Badge, Spinner, Alert, Tab, Tabs } f
 import LazyImage from '../../components/common/LazyImage';
 import ProductReviews from '../../components/product/ProductReviews';
 import { getProductById } from '../../api/products';
+import { useCart } from '../../contexts/CartContext';
 
 const ProductDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { addToCart } = useCart();
     const [producto, setProducto] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [cantidad, setCantidad] = useState(1);
+    const [variantes, setVariantes] = useState([]);
+    const [varianteSeleccionada, setVarianteSeleccionada] = useState(null);
+    const [stockDisponible, setStockDisponible] = useState(0);
 
     useEffect(() => {
         cargarProducto();
+        cargarVariantes();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const cargarProducto = async () => {
@@ -35,8 +42,70 @@ const ProductDetailPage = () => {
         }
     };
 
+    const cargarVariantes = async () => {
+        try {
+            const response = await fetch(`http://localhost:8081/api/productos/${id}/variantes`);
+            if (response.ok) {
+                const data = await response.json();
+                setVariantes(data);
+                // Seleccionar la primera variante por defecto
+                if (data.length > 0) {
+                    setVarianteSeleccionada(data[0]);
+                    await cargarStockVariante(data[0].varianteId);
+                }
+            }
+        } catch (err) {
+            console.error('Error al cargar variantes:', err);
+        }
+    };
+
+    const cargarStockVariante = async (varianteId) => {
+        try {
+            const response = await fetch(`http://localhost:8081/api/logistica/inventario/variante/${varianteId}`);
+            if (response.ok) {
+                const inventarios = await response.json();
+                // Sumar stock de todas las ubicaciones
+                const stockTotal = inventarios.reduce((total, inv) => total + inv.cantidad, 0);
+                setStockDisponible(stockTotal);
+            } else {
+                setStockDisponible(0);
+            }
+        } catch (err) {
+            console.error('Error al cargar stock:', err);
+            setStockDisponible(0);
+        }
+    };
+
+    const handleVarianteChange = async (variante) => {
+        setVarianteSeleccionada(variante);
+        await cargarStockVariante(variante.varianteId);
+        setCantidad(1); // Resetear cantidad al cambiar variante
+    };
+
     const handleAddToCart = () => {
-        alert(`Añadido al carrito: ${cantidad} x ${producto.name}`);
+        if (!varianteSeleccionada) {
+            alert('Por favor selecciona una variante');
+            return;
+        }
+
+        if (stockDisponible < cantidad) {
+            alert(`Stock insuficiente. Disponible: ${stockDisponible}`);
+            return;
+        }
+
+        const cartItem = {
+            varianteId: varianteSeleccionada.varianteId,
+            productoId: producto.id,
+            nombre: producto.name,
+            nombreVariante: varianteSeleccionada.nombre || 'Estándar',
+            sku: varianteSeleccionada.sku,
+            precio: varianteSeleccionada.precioBase || producto.price,
+            imagen: producto.image,
+            stock: stockDisponible
+        };
+
+        addToCart(cartItem, cantidad);
+        alert(`✅ ${cantidad} x ${producto.name} agregado al carrito`);
     };
 
     if (loading) {
@@ -136,28 +205,96 @@ const ProductDetailPage = () => {
                     <h1 className="mb-3">{producto.name}</h1>
                     {producto.description && <p className="text-muted mb-4">{producto.description}</p>}
 
+                    {/* Selector de Variantes */}
+                    {variantes.length > 1 && (
+                        <Card className="mb-3 border-0 bg-light">
+                            <Card.Body>
+                                <h6 className="mb-3">Seleccione una variante:</h6>
+                                <div className="d-flex flex-wrap gap-2">
+                                    {variantes.map((variante) => {
+                                        const isGeneric = variante.sku?.startsWith('SKU-');
+                                        const displayText = isGeneric ? 'Estándar' : variante.sku;
+                                        const isSelected = varianteSeleccionada?.varianteId === variante.varianteId;
+                                        
+                                        return (
+                                            <Button
+                                                key={variante.varianteId}
+                                                variant={isSelected ? 'primary' : 'outline-primary'}
+                                                onClick={() => handleVarianteChange(variante)}
+                                                className="px-3"
+                                            >
+                                                {displayText}
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
+                                {varianteSeleccionada && !varianteSeleccionada.sku?.startsWith('SKU-') && (
+                                    <small className="text-muted d-block mt-2">
+                                        SKU: {varianteSeleccionada.sku}
+                                    </small>
+                                )}
+                            </Card.Body>
+                        </Card>
+                    )}
+
+                    {/* Stock Disponible */}
+                    {varianteSeleccionada && (
+                        <Alert variant={stockDisponible > 0 ? 'success' : 'warning'} className="mb-3">
+                            <i className="bi bi-box-seam me-2"></i>
+                            <strong>Stock disponible:</strong> {stockDisponible} unidades
+                        </Alert>
+                    )}
+
                     {/* Precio */}
                     <div className="mb-4">
-                        <h2 className="text-danger fw-bold mb-0">S/ {parseFloat(producto.price).toFixed(2)}</h2>
+                        <h2 className="text-danger fw-bold mb-0">
+                            S/ {varianteSeleccionada 
+                                ? parseFloat(varianteSeleccionada.precioBase).toFixed(2)
+                                : parseFloat(producto.price).toFixed(2)}
+                        </h2>
                         <small className="text-muted">Precio incluye IGV</small>
                     </div>
 
                     {/* Añadir al carrito */}
-                    {producto.activo && (
+                    {producto.activo && stockDisponible > 0 && (
                         <Card className="mb-4 border-0 bg-light">
                             <Card.Body>
                                 <Row className="align-items-center">
                                     <Col md={4}>
                                         <label className="form-label">Cantidad:</label>
                                         <div className="input-group">
-                                            <Button variant="outline-secondary" onClick={() => setCantidad(Math.max(1, cantidad - 1))}>-</Button>
-                                            <input type="number" className="form-control text-center" value={cantidad}
-                                                onChange={(e) => setCantidad(Math.max(1, parseInt(e.target.value) || 1))} min="1" />
-                                            <Button variant="outline-secondary" onClick={() => setCantidad(cantidad + 1)}>+</Button>
+                                            <Button 
+                                                variant="outline-secondary" 
+                                                onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                                                disabled={cantidad <= 1}
+                                            >
+                                                -
+                                            </Button>
+                                            <input 
+                                                type="number" 
+                                                className="form-control text-center" 
+                                                value={cantidad}
+                                                onChange={(e) => setCantidad(Math.min(stockDisponible, Math.max(1, parseInt(e.target.value) || 1)))} 
+                                                min="1" 
+                                                max={stockDisponible}
+                                            />
+                                            <Button 
+                                                variant="outline-secondary" 
+                                                onClick={() => setCantidad(Math.min(stockDisponible, cantidad + 1))}
+                                                disabled={cantidad >= stockDisponible}
+                                            >
+                                                +
+                                            </Button>
                                         </div>
                                     </Col>
                                     <Col md={8}>
-                                        <Button variant="primary" size="lg" className="w-100" onClick={handleAddToCart}>
+                                        <Button 
+                                            variant="primary" 
+                                            size="lg" 
+                                            className="w-100" 
+                                            onClick={handleAddToCart}
+                                            disabled={!varianteSeleccionada || stockDisponible === 0}
+                                        >
                                             <i className="bi bi-cart-plus me-2"></i>Añadir al Carrito
                                         </Button>
                                     </Col>
@@ -170,6 +307,13 @@ const ProductDetailPage = () => {
                         <Alert variant="warning">
                             <i className="bi bi-exclamation-triangle me-2"></i>
                             Producto no disponible actualmente
+                        </Alert>
+                    )}
+
+                    {producto.activo && stockDisponible === 0 && (
+                        <Alert variant="danger">
+                            <i className="bi bi-x-circle me-2"></i>
+                            Producto sin stock. Vuelve pronto.
                         </Alert>
                     )}
 

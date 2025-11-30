@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte de Inventario</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; font-size: 12px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 30px; }
+        
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .info-block { flex: 1; }
+        .info-block strong { display: block; color: #495057; margin-bottom: 5px; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        th {
+            background: #495057;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        tr:hover { background: #f8f9fa; }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+        }
+        .status-ok { background: #d4edda; color: #155724; }
+        .status-low { background: #fff3cd; color: #856404; }
+        .status-critical { background: #f8d7da; color: #721c24; }
+        
+        .summary {
+            display: flex;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .summary-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+        .summary-card h3 { font-size: 32px; margin-bottom: 5px; }
+        .summary-card p { font-size: 12px; opacity: 0.9; }
+        .card-success { background: #28a745; }
+        .card-warning { background: #ffc107; color: #333; }
+        .card-danger { background: #dc3545; }
+        .card-info { background: #17a2b8; }
+        
+        .footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            font-size: 10px;
+            color: #6c757d;
+            border-top: 2px solid #dee2e6;
+        }
+        
+        @page { size: A4; margin: 15mm; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 REPORTE DE INVENTARIO</h1>
+            <p>Estado actualizado del stock de productos</p>
+        </div>
+
+        <div class="info-section">
+            <div class="info-block">
+                <strong>Fecha de Reporte:</strong>
+                <span th:text="${#dates.format(reportDate, 'dd/MM/yyyy HH:mm')}"></span>
+            </div>
+            <div class="info-block">
+                <strong>Ubicación:</strong>
+                <span th:text="${ubicacion ?: 'Todas las ubicaciones'}"></span>
+            </div>
+            <div class="info-block">
+                <strong>Generado por:</strong>
+                <span th:text="${generatedBy ?: 'Sistema'}"></span>
+            </div>
+        </div>
+
+        <!-- Tarjetas de resumen -->
+        <div class="summary">
+            <div class="summary-card card-success">
+                <h3 th:text="${totalProducts}">0</h3>
+                <p>Total Productos</p>
+            </div>
+            <div class="summary-card card-info">
+                <h3 th:text="${totalUnits}">0</h3>
+                <p>Unidades en Stock</p>
+            </div>
+            <div class="summary-card card-warning">
+                <h3 th:text="${lowStockCount}">0</h3>
+                <p>Stock Bajo</p>
+            </div>
+            <div class="summary-card card-danger">
+                <h3 th:text="${outOfStockCount}">0</h3>
+                <p>Sin Stock</p>
+            </div>
+        </div>
+
+        <!-- Tabla de inventario -->
+        <table>
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Producto</th>
+                    <th>Variante</th>
+                    <th style="text-align: center;">Stock Actual</th>
+                    <th style="text-align: center;">Stock Mínimo</th>
+                    <th style="text-align: center;">Estado</th>
+                    <th>Ubicación</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${items}">
+                    <td><strong th:text="${item.sku}">SKU-001</strong></td>
+                    <td th:text="${item.productName}">Producto</td>
+                    <td th:text="${item.variantName}">Variante</td>
+                    <td style="text-align: center;"><strong th:text="${item.currentStock}">0</strong></td>
+                    <td style="text-align: center;" th:text="${item.minStock}">0</td>
+                    <td style="text-align: center;">
+                        <span th:if="${item.currentStock == 0}" class="status-badge status-critical">AGOTADO</span>
+                        <span th:if="${item.currentStock > 0 and item.currentStock < item.minStock}" class="status-badge status-low">BAJO</span>
+                        <span th:if="${item.currentStock >= item.minStock}" class="status-badge status-ok">OK</span>
+                    </td>
+                    <td th:text="${item.location}">Almacén</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <p><strong>Macrosur E-commerce - Sistema de Gestión de Inventario</strong></p>
+            <p>Generado automáticamente el <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy HH:mm:ss')}"></span></p>
+        </div>
+    </div>
+</body>
+</html>
