@@ -245,11 +245,11 @@ const ProductDetailPage = () => {
 
                     {/* Precio */}
                     <div className="mb-4">
-                        <h2 className="text-danger fw-bold mb-0">
-                            S/ {varianteSeleccionada 
+                        <h3 className="text-danger fw-bold mb-3">
+                            $ {varianteSeleccionada 
                                 ? parseFloat(varianteSeleccionada.precioBase).toFixed(2)
                                 : parseFloat(producto.price).toFixed(2)}
-                        </h2>
+                        </h3>
                         <small className="text-muted">Precio incluye IGV</small>
                     </div>
 
@@ -322,7 +322,7 @@ const ProductDetailPage = () => {
                                 <i className="bi bi-truck text-primary fs-4 me-3"></i>
                                 <div>
                                     <div className="fw-semibold">Envío Gratis</div>
-                                    <small className="text-muted">En compras &gt; S/ 150</small>
+                                    <small className="text-muted">En compras &gt; $150</small>
                                 </div>
                             </div>
                         </Col>

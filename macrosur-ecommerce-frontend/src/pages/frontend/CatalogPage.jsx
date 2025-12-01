@@ -195,7 +195,7 @@ const CatalogPage = () => {
                             <Form.Control
                                 type="number"
                                 step="0.01"
-                                placeholder="S/ 0.00"
+                                placeholder="$0.00"
                                 value={precioMin}
                                 onChange={(e) => {
                                     setPrecioMin(e.target.value);
@@ -209,7 +209,7 @@ const CatalogPage = () => {
                             <Form.Control
                                 type="number"
                                 step="0.01"
-                                placeholder="S/ 999.99"
+                                placeholder="$999.99"
                                 value={precioMax}
                                 onChange={(e) => {
                                     setPrecioMax(e.target.value);
