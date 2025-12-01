@@ -9,100 +9,117 @@ USE macrosur_ecommerce;
 -- =============================================
 
 INSERT INTO permisos (nombre_permiso) VALUES
-('GESTIONAR_INVENTARIO'),
-('GESTIONAR_ORDENES_REPOSICION'),
-('AUTORIZAR_ORDENES_REPOSICION'),
-('GESTIONAR_SEGUIMIENTO_DESPACHO'),
-('VER_ALARMAS_STOCK'),
-('GESTIONAR_PROVEEDORES'),
-('GESTIONAR_OPERADORES_LOGISTICOS')
-ON DUPLICATE KEY UPDATE nombre_permiso = nombre_permiso;
+                                          ('GESTIONAR_INVENTARIO'),
+                                          ('GESTIONAR_ORDENES_REPOSICION'),
+                                          ('AUTORIZAR_ORDENES_REPOSICION'),
+                                          ('GESTIONAR_SEGUIMIENTO_DESPACHO'),
+                                          ('VER_ALARMAS_STOCK'),
+                                          ('GESTIONAR_PROVEEDORES'),
+                                          ('GESTIONAR_OPERADORES_LOGISTICOS')
+    ON DUPLICATE KEY UPDATE nombre_permiso = nombre_permiso;
 
 -- =============================================
 -- 2. CREAR ROL "GESTOR LOGÍSTICA"
 -- =============================================
 
 INSERT INTO roles (nombre_rol) VALUES ('Gestor Logística')
-ON DUPLICATE KEY UPDATE nombre_rol = nombre_rol;
+    ON DUPLICATE KEY UPDATE nombre_rol = nombre_rol;
 
 -- =============================================
 -- 3. ASIGNAR PERMISOS AL ROL "GESTOR LOGÍSTICA"
+--    (versión sin variables, sin valores NULL)
 -- =============================================
 
--- Obtener ID del rol
-SET @rol_logistica_id = (SELECT rol_id FROM roles WHERE nombre_rol = 'Gestor Logística');
-
--- Asignar permisos
 INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT @rol_logistica_id, permiso_id
-FROM permisos
-WHERE nombre_permiso IN (
-    'GESTIONAR_INVENTARIO',
-    'GESTIONAR_ORDENES_REPOSICION',
-    'GESTIONAR_SEGUIMIENTO_DESPACHO',
-    'VER_ALARMAS_STOCK',
-    'GESTIONAR_PROVEEDORES',
-    'GESTIONAR_OPERADORES_LOGISTICOS'
-)
-ON DUPLICATE KEY UPDATE rol_id = rol_id;
+SELECT
+    r.rol_id,
+    p.permiso_id
+FROM roles r
+         JOIN permisos p ON 1 = 1
+         LEFT JOIN rol_permiso rp
+                   ON rp.rol_id = r.rol_id
+                       AND rp.permiso_id = p.permiso_id
+WHERE r.nombre_rol = 'Gestor Logística'
+  AND p.nombre_permiso IN (
+                           'GESTIONAR_INVENTARIO',
+                           'GESTIONAR_ORDENES_REPOSICION',
+                           'GESTIONAR_SEGUIMIENTO_DESPACHO',
+                           'VER_ALARMAS_STOCK',
+                           'GESTIONAR_PROVEEDORES',
+                           'GESTIONAR_OPERADORES_LOGISTICOS'
+    )
+  AND rp.rol_id IS NULL;  -- evita duplicados
 
 -- =============================================
 -- 4. ASIGNAR PERMISOS ADICIONALES AL ROL "ADMIN"
--- (Para que admin pueda autorizar órdenes)
+--    (también sin variables)
 -- =============================================
-
-SET @rol_admin_id = (SELECT rol_id FROM roles WHERE nombre_rol = 'Admin');
 
 INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT @rol_admin_id, permiso_id
-FROM permisos
-WHERE nombre_permiso IN (
-    'GESTIONAR_INVENTARIO',
-    'GESTIONAR_ORDENES_REPOSICION',
-    'AUTORIZAR_ORDENES_REPOSICION',
-    'GESTIONAR_SEGUIMIENTO_DESPACHO',
-    'VER_ALARMAS_STOCK',
-    'GESTIONAR_PROVEEDORES',
-    'GESTIONAR_OPERADORES_LOGISTICOS'
-)
-ON DUPLICATE KEY UPDATE rol_id = rol_id;
+SELECT
+    r.rol_id,
+    p.permiso_id
+FROM roles r
+         JOIN permisos p ON 1 = 1
+         LEFT JOIN rol_permiso rp
+                   ON rp.rol_id = r.rol_id
+                       AND rp.permiso_id = p.permiso_id
+WHERE r.nombre_rol = 'Admin'
+  AND p.nombre_permiso IN (
+                           'GESTIONAR_INVENTARIO',
+                           'GESTIONAR_ORDENES_REPOSICION',
+                           'AUTORIZAR_ORDENES_REPOSICION',
+                           'GESTIONAR_SEGUIMIENTO_DESPACHO',
+                           'VER_ALARMAS_STOCK',
+                           'GESTIONAR_PROVEEDORES',
+                           'GESTIONAR_OPERADORES_LOGISTICOS'
+    )
+  AND rp.rol_id IS NULL;  -- evita duplicados
 
 -- =============================================
--- 5. INSERTAR OPERADORES LOGÍSTICOS (CHILEXPRESS Y CORREOS DE CHILE)
+-- 5. INSERTAR OPERADORES LOGÍSTICOS
 -- =============================================
 
 INSERT INTO operadores_logisticos (nombre, url_rastreo_base) VALUES
-('Chilexpress', 'https://www.chilexpress.cl/Seguimiento?='),
-('Correos de Chile', 'https://www.correos.cl/SitePages/seguimiento/seguimiento.aspx?envio=')
-ON DUPLICATE KEY UPDATE nombre = nombre;
+                                                                 ('Chilexpress', 'https://www.chilexpress.cl/Seguimiento?='),
+                                                                 ('Correos de Chile', 'https://www.correos.cl/SitePages/seguimiento/seguimiento.aspx?envio=')
+    ON DUPLICATE KEY UPDATE nombre = nombre;
 
 -- =============================================
 -- 6. INSERTAR PROVEEDOR POR DEFECTO (SI NO EXISTE)
 -- =============================================
 
 INSERT INTO proveedores (nombre, contacto, telefono) VALUES
-('Proveedor Principal', 'contacto@proveedor.cl', '+56912345678')
-ON DUPLICATE KEY UPDATE nombre = nombre;
+    ('Proveedor Principal', 'contacto@proveedor.cl', '+56912345678')
+    ON DUPLICATE KEY UPDATE nombre = nombre;
 
 -- =============================================
 -- 7. INSERTAR UBICACIÓN DE TIENDA FÍSICA (SI NO EXISTE)
 -- =============================================
 
 INSERT INTO ubicaciones_inventario (nombre_ubicacion, tipo_ubicacion, es_fisica, direccion) VALUES
-('Tienda Principal', 'TIENDA', TRUE, 'Dirección de la tienda física')
-ON DUPLICATE KEY UPDATE nombre_ubicacion = nombre_ubicacion;
+    ('Tienda Principal', 'TIENDA', TRUE, 'Dirección de la tienda física')
+    ON DUPLICATE KEY UPDATE nombre_ubicacion = nombre_ubicacion;
 
 -- =============================================
--- VERIFICACIÓN DE RESULTADOS
+-- 8. VERIFICACIÓN DE RESULTADOS
 -- =============================================
 
 SELECT 'Permisos de logística creados:' AS resultado;
-SELECT permiso_id, nombre_permiso FROM permisos WHERE nombre_permiso LIKE '%LOGISTIC%' OR nombre_permiso LIKE '%INVENTARIO%' OR nombre_permiso LIKE '%ORDEN%' OR nombre_permiso LIKE '%SEGUIMIENTO%' OR nombre_permiso LIKE '%ALARMA%' OR nombre_permiso LIKE '%PROVEEDOR%' OR nombre_permiso LIKE '%OPERADOR%';
+SELECT permiso_id, nombre_permiso
+FROM permisos
+WHERE nombre_permiso LIKE '%LOGISTIC%'
+   OR nombre_permiso LIKE '%INVENTARIO%'
+   OR nombre_permiso LIKE '%ORDEN%'
+   OR nombre_permiso LIKE '%SEGUIMIENTO%'
+   OR nombre_permiso LIKE '%ALARMA%'
+   OR nombre_permiso LIKE '%PROVEEDOR%'
+   OR nombre_permiso LIKE '%OPERADOR%';
 
 SELECT 'Rol Gestor Logística:' AS resultado;
 SELECT r.rol_id, r.nombre_rol, COUNT(rp.permiso_id) AS cantidad_permisos
 FROM roles r
-LEFT JOIN rol_permiso rp ON r.rol_id = rp.rol_id
+         LEFT JOIN rol_permiso rp ON r.rol_id = rp.rol_id
 WHERE r.nombre_rol = 'Gestor Logística'
 GROUP BY r.rol_id, r.nombre_rol;
 
@@ -114,3 +131,4 @@ SELECT * FROM proveedores;
 
 SELECT 'Ubicaciones:' AS resultado;
 SELECT * FROM ubicaciones_inventario;
+
