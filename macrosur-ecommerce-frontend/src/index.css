@@ -24,10 +24,13 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  padding: 0;
+  display: block !important; 
+  min-width: 100vw; 
   min-height: 100vh;
+  background-color: #ffffff !important;
+  color: #212529 !important;
+  overflow-x: hidden;
 }
 
 h1 {

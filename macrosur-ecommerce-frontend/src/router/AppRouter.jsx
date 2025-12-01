@@ -17,7 +17,7 @@ import ProfileRouter from './ProfileRouter';
 import AdminRouter from './AdminRouter';
 import LayoutAdmin from '../components/layout/LayoutAdmin'; // Layout con Sidebar
 import LayoutCliente from '../components/layout/LayoutCliente'; // Layout con Header/Footer
-
+import ClaimsPage from '../pages/admin/ClaimsPage';
 /**
  * Componente Wrapper para proteger rutas.
  * Verifica si el usuario está autenticado Y si tiene el rol requerido.
@@ -56,6 +56,7 @@ const AppRouter = () => {
         {/* ========================================================= */}
         <Route element={<LayoutCliente />}>
           {/* Rutas Públicas */}
+          <Route path="/libro-reclamaciones" element={<ClaimsPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/catalogo" element={<CatalogPage />} />
           <Route path="/producto/:id" element={<ProductDetailPage />} />

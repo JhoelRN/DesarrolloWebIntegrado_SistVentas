@@ -26,7 +26,7 @@ const LayoutAdmin = () => {
           
           {/* Catálogo y Productos */}
           <PermissionGuard requiredPermissions={['VER_PRODUCTOS', 'CREAR_PRODUCTOS', 'VER_CATEGORIAS']}>
-            <div className="text-muted small mt-3 mb-1">CATÁLOGO</div>
+            <div className="text-white-50 small mt-3 mb-1">CATÁLOGO</div>
           </PermissionGuard>
           
           <PermissionGuard requiredPermissions={['VER_PRODUCTOS']}>
@@ -43,7 +43,7 @@ const LayoutAdmin = () => {
           
           {/* Ventas y Comercial */}
           <PermissionGuard requiredPermissions={['GESTIONAR_PEDIDOS', 'VER_PROMOCIONES', 'VER_CLIENTES']}>
-            <div className="text-muted small mt-3 mb-1">VENTAS</div>
+            <div className="text-white-50 small mt-3 mb-1">VENTAS</div>
           </PermissionGuard>
           
           <PermissionGuard requiredPermission="GESTIONAR_PEDIDOS">
@@ -66,7 +66,7 @@ const LayoutAdmin = () => {
           
           {/* Logística e Inventario */}
           <PermissionGuard requiredPermissions={['VER_INVENTARIO', 'GESTIONAR_STOCK', 'VER_LOGISTICA']}>
-            <div className="text-muted small mt-3 mb-1">LOGÍSTICA</div>
+            <div className="text-white-50 small mt-3 mb-1">LOGÍSTICA</div>
           </PermissionGuard>
           
           <PermissionGuard requiredPermissions={['VER_INVENTARIO']}>
@@ -89,7 +89,7 @@ const LayoutAdmin = () => {
           
           {/* Administración */}
           <PermissionGuard requiredRole="ADMIN">
-            <div className="text-muted small mt-3 mb-1">ADMINISTRACIÓN</div>
+            <div className="text-white-50 small mt-3 mb-1">ADMINISTRACIÓN</div>
             <Nav.Link as={Link} to="/admin/users" className="text-white">
               <i className="bi bi-person-badge me-2"></i>Usuarios Admin
             </Nav.Link>
