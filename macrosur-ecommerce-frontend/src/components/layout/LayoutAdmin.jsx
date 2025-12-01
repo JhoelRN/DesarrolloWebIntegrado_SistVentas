@@ -24,106 +24,88 @@ const LayoutAdmin = () => {
             <i className="bi bi-speedometer2 me-2"></i>Dashboard
           </Nav.Link>
           
-          {/* Catálogo y Productos */}
-          <PermissionGuard requiredPermissions={['VER_PRODUCTOS', 'CREAR_PRODUCTOS', 'VER_CATEGORIAS']}>
-            <div className="text-muted small mt-3 mb-1">CATÁLOGO</div>
-          </PermissionGuard>
+          {/* Catálogo y Productos - ADMIN + GESTOR_PRODUCTOS */}
+          {(userRole === 'ADMIN' || userRole === 'GESTOR_PRODUCTOS') && (
+            <>
+              <div className="text-muted small mt-3 mb-1">CATÁLOGO</div>
+              <Nav.Link as={Link} to="/admin/products" className="text-white">
+                <i className="bi bi-box me-2"></i>Productos
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/categories" className="text-white">
+                <i className="bi bi-tags me-2"></i>Categorías
+              </Nav.Link>
+            </>
+          )}
           
-          <PermissionGuard requiredPermissions={['VER_PRODUCTOS']}>
-            <Nav.Link as={Link} to="/admin/products" className="text-white">
-              <i className="bi bi-box me-2"></i>Productos
-            </Nav.Link>
-          </PermissionGuard>
+          {/* Ventas y Comercial - ADMIN + GESTOR_COMERCIAL */}
+          {(userRole === 'ADMIN' || userRole === 'GESTOR_COMERCIAL') && (
+            <>
+              <div className="text-muted small mt-3 mb-1">VENTAS</div>
+              <Nav.Link as={Link} to="/admin/orders" className="text-white">
+                <i className="bi bi-cart-check me-2"></i>Pedidos Clientes
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/promotions" className="text-white">
+                <i className="bi bi-percent me-2"></i>Promociones
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/customers" className="text-white">
+                <i className="bi bi-people me-2"></i>Clientes
+              </Nav.Link>
+            </>
+          )}
           
-          <PermissionGuard requiredPermission="VER_CATEGORIAS">
-            <Nav.Link as={Link} to="/admin/categories" className="text-white">
-              <i className="bi bi-tags me-2"></i>Categorías
-            </Nav.Link>
-          </PermissionGuard>
+          {/* Logística e Inventario - ADMIN + GESTOR_LOGISTICA */}
+          {(userRole === 'ADMIN' || userRole === 'GESTOR_LOGISTICA') && (
+            <>
+              <div className="text-muted small mt-3 mb-1">LOGÍSTICA</div>
+              <Nav.Link as={Link} to="/admin/inventory" className="text-white">
+                <i className="bi bi-boxes me-2"></i>Inventario
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/logistica/ordenes-reposicion" className="text-white">
+                <i className="bi bi-clipboard-check me-2"></i>Órdenes Reposición
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/logistica/alarmas" className="text-white">
+                <i className="bi bi-exclamation-triangle me-2"></i>Alarmas Stock
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/logistica/pedidos" className="text-white">
+                <i className="bi bi-cart-check me-2"></i>Pedidos Logística
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/logistics" className="text-white">
+                <i className="bi bi-truck me-2"></i>Operadores
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/logistica/seguimiento" className="text-white">
+                <i className="bi bi-geo-alt me-2"></i>Seguimiento
+              </Nav.Link>
+            </>
+          )}
           
-          {/* Ventas y Comercial */}
-          <PermissionGuard requiredPermissions={['GESTIONAR_PEDIDOS', 'VER_PROMOCIONES', 'VER_CLIENTES']}>
-            <div className="text-muted small mt-3 mb-1">VENTAS</div>
-          </PermissionGuard>
+          {/* Administración - Solo ADMIN */}
+          {userRole === 'ADMIN' && (
+            <>
+              <div className="text-muted small mt-3 mb-1">ADMINISTRACIÓN</div>
+              <Nav.Link as={Link} to="/admin/users" className="text-white">
+                <i className="bi bi-person-badge me-2"></i>Usuarios Admin
+              </Nav.Link>
+            </>
+          )}
           
-          <PermissionGuard requiredPermission="GESTIONAR_PEDIDOS">
-            <Nav.Link as={Link} to="/admin/orders" className="text-white">
-              <i className="bi bi-cart-check me-2"></i>Pedidos Clientes
-            </Nav.Link>
-          </PermissionGuard>
+          {/* Reseñas y Reclamos - ADMIN + GESTOR_COMERCIAL */}
+          {(userRole === 'ADMIN' || userRole === 'GESTOR_COMERCIAL') && (
+            <>
+              <Nav.Link as={Link} to="/admin/reviews" className="text-white">
+                <i className="bi bi-star me-2"></i>Reseñas
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/claims" className="text-white">
+                <i className="bi bi-file-earmark-text me-2"></i>Reclamaciones
+              </Nav.Link>
+            </>
+          )}
           
-          <PermissionGuard requiredPermission="VER_PROMOCIONES">
-            <Nav.Link as={Link} to="/admin/promotions" className="text-white">
-              <i className="bi bi-percent me-2"></i>Promociones
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermission="VER_CLIENTES">
-            <Nav.Link as={Link} to="/admin/customers" className="text-white">
-              <i className="bi bi-people me-2"></i>Clientes
-            </Nav.Link>
-          </PermissionGuard>
-          
-          {/* Logística e Inventario */}
-          <PermissionGuard requiredPermissions={['VER_INVENTARIO', 'GESTIONAR_STOCK', 'VER_LOGISTICA']}>
-            <div className="text-muted small mt-3 mb-1">LOGÍSTICA</div>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermissions={['VER_INVENTARIO']}>
-            <Nav.Link as={Link} to="/admin/inventory" className="text-white">
-              <i className="bi bi-boxes me-2"></i>Inventario
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermission="GESTIONAR_STOCK">
-            <Nav.Link as={Link} to="/admin/logistica/ordenes-reposicion" className="text-white">
-              <i className="bi bi-clipboard-check me-2"></i>Órdenes Reposición
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermission="GESTIONAR_STOCK">
-            <Nav.Link as={Link} to="/admin/logistica/alarmas" className="text-white">
-              <i className="bi bi-exclamation-triangle me-2"></i>Alarmas Stock
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermission="VER_LOGISTICA">
-            <Nav.Link as={Link} to="/admin/logistics" className="text-white">
-              <i className="bi bi-truck me-2"></i>Operadores
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermission="VER_LOGISTICA">
-            <Nav.Link as={Link} to="/admin/logistica/seguimiento" className="text-white">
-              <i className="bi bi-geo-alt me-2"></i>Seguimiento
-            </Nav.Link>
-          </PermissionGuard>
-          
-          {/* Administración */}
-          <PermissionGuard requiredRole="ADMIN">
-            <div className="text-muted small mt-3 mb-1">ADMINISTRACIÓN</div>
-            <Nav.Link as={Link} to="/admin/users" className="text-white">
-              <i className="bi bi-person-badge me-2"></i>Usuarios Admin
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermission="VER_RESENAS">
-            <Nav.Link as={Link} to="/admin/reviews" className="text-white">
-              <i className="bi bi-star me-2"></i>Reseñas
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermission="VER_RECLAMOS">
-            <Nav.Link as={Link} to="/admin/claims" className="text-white">
-              <i className="bi bi-file-earmark-text me-2"></i>Reclamaciones
-            </Nav.Link>
-          </PermissionGuard>
-          
-          <PermissionGuard requiredPermissions={['REPORTE_PRODUCTOS', 'REPORTE_INVENTARIO', 'REPORTE_VENTAS', 'REPORTE_USUARIOS']}>
+          {/* Reportes - Todos los gestores */}
+          {(userRole === 'ADMIN' || userRole === 'GESTOR_COMERCIAL' || userRole === 'GESTOR_LOGISTICA' || userRole === 'GESTOR_PRODUCTOS') && (
             <Nav.Link as={Link} to="/admin/reports" className="text-white">
               <i className="bi bi-graph-up me-2"></i>Reportes
             </Nav.Link>
-          </PermissionGuard>
+          )}
         </Nav>
 
         <div className="mt-4">

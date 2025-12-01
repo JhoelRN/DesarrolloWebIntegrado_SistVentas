@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
         // Lógica para verificar el token en localStorage/sessionStorage al cargar la app
         const storedToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
         const storedRememberMe = localStorage.getItem('rememberMe') === 'true';
+        const storedIsAdmin = (localStorage.getItem('isAdmin') || sessionStorage.getItem('isAdmin')) === 'true';
         
         if (storedToken) {
             setRememberMe(storedRememberMe);
@@ -30,35 +31,51 @@ export const AuthProvider = ({ children }) => {
             // Validar token real con el backend
             const validate = async () => {
                 try {
-                    // Intentar validar el token con el backend
-                    const isValid = await authApi.validateToken(storedToken);
-                    if (isValid) {
-                        // Obtener datos completos del usuario desde el backend
-                        const userData = await authApi.getCurrentUser(storedToken);
-                        
-                        console.log('🔍 AuthContext - Datos del usuario:', userData);
-                        
-                        setUser({
-                            id: userData.id,
-                            name: userData.name,
-                            email: userData.email
-                        });
-                        setUserRole(userData.roleName);
-                        setUserPermissions(userData.permissions);
-                        setIsAuthenticated(true);
-                        
-                        console.log('✅ AuthContext - Usuario autenticado:', {
-                            role: userData.roleName,
-                            permissions: userData.permissions
-                        });
-                        
-                        // Programar auto-logout y detección de inactividad
-                        setupAutoLogout(storedRememberMe);
-                        setupInactivityDetection();
+                    let userData;
+                    
+                    // Si es cliente, el token ES el objeto de datos
+                    if (!storedIsAdmin) {
+                        try {
+                            const clientData = JSON.parse(storedToken);
+                            userData = await authApi.getCurrentUser(clientData, false);
+                        } catch {
+                            // Token inválido
+                            clearAuthData();
+                            setLoading(false);
+                            return;
+                        }
                     } else {
-                        // Token inválido
-                        clearAuthData();
+                        // Si es admin, validar el token JWT
+                        const isValid = await authApi.validateToken(storedToken);
+                        if (!isValid) {
+                            clearAuthData();
+                            setLoading(false);
+                            return;
+                        }
+                        
+                        // Obtener datos del admin
+                        userData = await authApi.getCurrentUser(storedToken, true);
                     }
+                    
+                    console.log('🔍 AuthContext - Datos del usuario:', userData);
+                    
+                    setUser({
+                        id: userData.id,
+                        name: userData.name,
+                        email: userData.email
+                    });
+                    setUserRole(userData.roleName);
+                    setUserPermissions(userData.permissions);
+                    setIsAuthenticated(true);
+                    
+                    console.log('✅ AuthContext - Usuario autenticado:', {
+                        role: userData.roleName,
+                        permissions: userData.permissions
+                    });
+                    
+                    // Programar auto-logout y detección de inactividad
+                    setupAutoLogout(storedRememberMe);
+                    setupInactivityDetection();
                 } catch (e) {
                     console.error('Error validando token:', e);
                     clearAuthData();
@@ -80,8 +97,10 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('authTokenExpiry');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('rememberMe');
+        localStorage.removeItem('isAdmin');
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('authTokenExpiry');
+        sessionStorage.removeItem('isAdmin');
         
         setUser(null);
         setUserRole(null);
@@ -152,9 +171,13 @@ export const AuthProvider = ({ children }) => {
             const storage = remember ? localStorage : sessionStorage;
             const ttl = remember ? SESSION_TTL : SESSION_TTL_SHORT;
             
-            // Guardar token y email
-            storage.setItem('authToken', response.token);
+            // Para clientes, el response ya contiene los datos (no hay token JWT)
+            const tokenOrData = response.token || response;
+            
+            // Guardar token/datos y email
+            storage.setItem('authToken', typeof tokenOrData === 'string' ? tokenOrData : JSON.stringify(tokenOrData));
             storage.setItem('userEmail', email);
+            storage.setItem('isAdmin', isAdmin.toString());
             const expiry = Date.now() + ttl;
             storage.setItem('authTokenExpiry', expiry.toString());
             
@@ -166,7 +189,7 @@ export const AuthProvider = ({ children }) => {
             setRememberMe(remember);
             
             // Obtener datos completos del usuario
-            const userData = await authApi.getCurrentUser(response.token);
+            const userData = await authApi.getCurrentUser(tokenOrData, isAdmin);
             
             console.log('🔍 Login - Datos del usuario:', userData);
             

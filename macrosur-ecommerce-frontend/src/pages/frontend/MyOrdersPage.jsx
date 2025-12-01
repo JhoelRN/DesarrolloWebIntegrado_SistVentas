@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Alert, Spinner, Table } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 
 const MyOrdersPage = () => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPedido, setSelectedPedido] = useState(null);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: '/mis-pedidos' } });
+      return;
+    }
     cargarMisPedidos();
-  }, []);
+  }, [isAuthenticated, user]);
 
   const cargarMisPedidos = async () => {
     try {
-      // TODO: Obtener clienteId del contexto de autenticación
-      const clienteId = 1;
-      const response = await axios.get(`http://localhost:8081/api/pedidos/mis-pedidos/${clienteId}`);
+      if (!user?.id) {
+        setError('No se pudo obtener tu información de usuario');
+        setLoading(false);
+        return;
+      }
+      
+      const response = await axios.get(`http://localhost:8081/api/pedidos/mis-pedidos/${user.id}`);
       setPedidos(response.data);
       setLoading(false);
     } catch (err) {

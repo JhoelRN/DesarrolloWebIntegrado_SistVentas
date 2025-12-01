@@ -29,11 +29,11 @@ export const obtenerSeguimientoPorGuia = async (numeroGuia) => {
 };
 
 export const actualizarEstadoEnvio = async (seguimientoId, nuevoEstado) => {
-  const response = await axios.patch(
+  const response = await axios.put(
     `${API_URL}/${seguimientoId}/estado`,
     null,
     {
-      params: { nuevoEstado },
+      params: { estado: nuevoEstado },
       headers: getAuthHeader()
     }
   );

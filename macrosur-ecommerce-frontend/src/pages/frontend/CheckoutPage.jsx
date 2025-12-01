@@ -2,17 +2,26 @@ import React, { useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const { cartItems, cartTotal, clearCart } = useCart();
+    const { user, isAuthenticated, loading: authLoading } = useAuth();
     
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     
     // Estado del formulario
     const [metodoEntrega, setMetodoEntrega] = useState('DOMICILIO');
+    const [metodoPago, setMetodoPago] = useState('');
+    const [datosPago, setDatosPago] = useState({
+        numeroTarjeta: '',
+        nombreTitular: '',
+        fechaExpiracion: '',
+        cvv: ''
+    });
     const [direccionEnvio, setDireccionEnvio] = useState({
         calle: '',
         numero: '',
@@ -30,12 +39,37 @@ const CheckoutPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        
+        // Validar autenticación
+        if (!isAuthenticated || !user) {
+            setError('Debes iniciar sesión para completar la compra');
+            navigate('/login', { state: { from: '/checkout' } });
+            return;
+        }
+        
+        // Validar que el usuario tenga ID
+        if (!user.id) {
+            console.error('❌ CheckoutPage - user NO tiene ID:', user);
+            setError('Error: No se pudo obtener tu información de usuario. Por favor, cierra sesión e inicia sesión nuevamente.');
+            return;
+        }
+        
+        // Validar método de pago
+        if (!metodoPago) {
+            setError('Debes seleccionar un método de pago');
+            return;
+        }
+        
         setLoading(true);
 
         try {
             // Preparar datos del pedido
+            console.log('🔍 CheckoutPage - Usuario autenticado:', user);
+            console.log('🔍 CheckoutPage - user.id:', user.id);
+            console.log('🔍 CheckoutPage - isAuthenticated:', isAuthenticated);
+            
             const pedidoData = {
-                clienteId: 1, // TODO: Obtener del contexto de autenticación
+                clienteId: user.id, // ID del usuario autenticado
                 metodoEntrega: metodoEntrega,
                 direccionEnvioId: null, // TODO: Crear dirección si es envío a domicilio
                 ubicacionRetiroId: metodoEntrega === 'RETIRO_EN_TIENDA' ? 4 : null, // ID Tienda Física
@@ -48,6 +82,8 @@ const CheckoutPage = () => {
                 }))
             };
 
+            console.log('📦 CheckoutPage - Datos del pedido a enviar:', JSON.stringify(pedidoData, null, 2));
+
             const response = await axios.post('http://localhost:8081/api/pedidos', pedidoData);
             
             if (response.data) {
@@ -55,8 +91,8 @@ const CheckoutPage = () => {
                 clearCart();
                 
                 // Redirigir a página de confirmación
-                alert(`¡Pedido creado exitosamente! ID: ${response.data.pedidoId}\nTotal: $${response.data.totalFinal.toLocaleString('es-CL')}`);
-                navigate('/');
+                alert(`¡Pedido creado exitosamente!\n\nNúmero de Pedido: #${response.data.pedidoId}\nTotal: $${response.data.totalFinal.toLocaleString('es-CL')}\nEstado: ${response.data.estado}\n\n¡Gracias por tu compra!`);
+                navigate('/mis-pedidos');
             }
         } catch (err) {
             console.error('Error al crear pedido:', err);
@@ -66,6 +102,7 @@ const CheckoutPage = () => {
         }
     };
 
+    // Verificar si hay productos en el carrito
     if (cartItems.length === 0) {
         return (
             <Container className="my-5">
@@ -73,6 +110,36 @@ const CheckoutPage = () => {
                     <h4>No hay productos en el carrito</h4>
                     <Button variant="primary" onClick={() => navigate('/productos')}>
                         Ver Productos
+                    </Button>
+                </Alert>
+            </Container>
+        );
+    }
+    
+    // Mostrar spinner mientras se verifica autenticación
+    if (authLoading) {
+        return (
+            <Container className="my-5 text-center">
+                <Spinner animation="border" role="status">
+                    <span className="visually-hidden">Cargando...</span>
+                </Spinner>
+                <p className="mt-3 text-muted">Verificando sesión...</p>
+            </Container>
+        );
+    }
+    
+    // Verificar autenticación
+    if (!isAuthenticated) {
+        return (
+            <Container className="my-5">
+                <Alert variant="info" className="text-center">
+                    <h4><i className="bi bi-lock me-2"></i>Inicia sesión para continuar</h4>
+                    <p>Debes iniciar sesión para completar tu compra</p>
+                    <Button variant="primary" onClick={() => navigate('/login', { state: { from: '/checkout' } })}>
+                        Iniciar Sesión
+                    </Button>
+                    <Button variant="outline-secondary" className="ms-2" onClick={() => navigate('/cart')}>
+                        Volver al Carrito
                     </Button>
                 </Alert>
             </Container>
@@ -90,6 +157,127 @@ const CheckoutPage = () => {
                 <Row>
                     <Col md={8}>
                         {error && <Alert variant="danger">{error}</Alert>}
+
+                        {/* Método de Pago */}
+                        <Card className="mb-4">
+                            <Card.Body>
+                                <h5 className="mb-3"><i className="bi bi-credit-card me-2"></i>Método de Pago</h5>
+                                
+                                <Form.Check
+                                    type="radio"
+                                    id="tarjeta"
+                                    label={
+                                        <div>
+                                            <strong>Tarjeta de Crédito/Débito</strong>
+                                            <br />
+                                            <small className="text-muted">Visa, Mastercard, American Express</small>
+                                        </div>
+                                    }
+                                    name="metodoPago"
+                                    checked={metodoPago === 'TARJETA'}
+                                    onChange={() => setMetodoPago('TARJETA')}
+                                    className="mb-3"
+                                    required
+                                />
+
+                                {metodoPago === 'TARJETA' && (
+                                    <div className="ps-4 mt-3">
+                                        <Row>
+                                            <Col md={12}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Número de Tarjeta</Form.Label>
+                                                    <Form.Control
+                                                        type="text"
+                                                        placeholder="1234 5678 9012 3456"
+                                                        value={datosPago.numeroTarjeta}
+                                                        onChange={(e) => setDatosPago({...datosPago, numeroTarjeta: e.target.value})}
+                                                        maxLength="19"
+                                                        required
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col md={12}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Nombre del Titular</Form.Label>
+                                                    <Form.Control
+                                                        type="text"
+                                                        placeholder="Como aparece en la tarjeta"
+                                                        value={datosPago.nombreTitular}
+                                                        onChange={(e) => setDatosPago({...datosPago, nombreTitular: e.target.value})}
+                                                        required
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                        </Row>
+                                        <Row>
+                                            <Col md={6}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>Fecha de Expiración</Form.Label>
+                                                    <Form.Control
+                                                        type="text"
+                                                        placeholder="MM/AA"
+                                                        value={datosPago.fechaExpiracion}
+                                                        onChange={(e) => setDatosPago({...datosPago, fechaExpiracion: e.target.value})}
+                                                        maxLength="5"
+                                                        required
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col md={6}>
+                                                <Form.Group className="mb-3">
+                                                    <Form.Label>CVV</Form.Label>
+                                                    <Form.Control
+                                                        type="text"
+                                                        placeholder="123"
+                                                        value={datosPago.cvv}
+                                                        onChange={(e) => setDatosPago({...datosPago, cvv: e.target.value})}
+                                                        maxLength="4"
+                                                        required
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                        </Row>
+                                        <Alert variant="info" className="small">
+                                            <i className="bi bi-shield-check me-1"></i>
+                                            <strong>Pago simulado:</strong> Esta es una demostración. No se procesarán cargos reales.
+                                        </Alert>
+                                    </div>
+                                )}
+
+                                <Form.Check
+                                    type="radio"
+                                    id="transferencia"
+                                    label={
+                                        <div>
+                                            <strong>Transferencia Bancaria</strong>
+                                            <br />
+                                            <small className="text-muted">Recibirás instrucciones por email</small>
+                                        </div>
+                                    }
+                                    name="metodoPago"
+                                    checked={metodoPago === 'TRANSFERENCIA'}
+                                    onChange={() => setMetodoPago('TRANSFERENCIA')}
+                                    className="mb-3"
+                                />
+
+                                <Form.Check
+                                    type="radio"
+                                    id="efectivo"
+                                    label={
+                                        <div>
+                                            <strong>Pago contra Entrega (Efectivo)</strong>
+                                            <br />
+                                            <small className="text-muted">Paga cuando recibas tu pedido</small>
+                                        </div>
+                                    }
+                                    name="metodoPago"
+                                    checked={metodoPago === 'EFECTIVO'}
+                                    onChange={() => setMetodoPago('EFECTIVO')}
+                                />
+                            </Card.Body>
+                        </Card>
 
                         <Card className="mb-4">
                             <Card.Body>

@@ -140,7 +140,7 @@ const TrackingPage = () => {
             </thead>
             <tbody>
               {seguimientosFiltrados.map((seguimiento) => (
-                <tr key={seguimiento.seguimientoId}>
+                <tr key={seguimiento.seguimientoDespachoId}>
                   <td><code>#{seguimiento.pedidoId}</code></td>
                   <td>
                     <strong>{seguimiento.nombreOperador}</strong>
@@ -174,7 +174,7 @@ const TrackingPage = () => {
                       <Button
                         variant="info"
                         size="sm"
-                        onClick={() => handleActualizarEstado(seguimiento.seguimientoId, 'EN_DISTRIBUCION')}
+                        onClick={() => handleActualizarEstado(seguimiento.seguimientoDespachoId, 'EN_DISTRIBUCION')}
                       >
                         En Distribución
                       </Button>
@@ -185,14 +185,14 @@ const TrackingPage = () => {
                           variant="success"
                           size="sm"
                           className="me-2"
-                          onClick={() => handleActualizarEstado(seguimiento.seguimientoId, 'ENTREGADO')}
+                          onClick={() => handleActualizarEstado(seguimiento.seguimientoDespachoId, 'ENTREGADO')}
                         >
                           Entregado
                         </Button>
                         <Button
                           variant="danger"
                           size="sm"
-                          onClick={() => handleActualizarEstado(seguimiento.seguimientoId, 'FALLIDO')}
+                          onClick={() => handleActualizarEstado(seguimiento.seguimientoDespachoId, 'FALLIDO')}
                         >
                           Fallido
                         </Button>

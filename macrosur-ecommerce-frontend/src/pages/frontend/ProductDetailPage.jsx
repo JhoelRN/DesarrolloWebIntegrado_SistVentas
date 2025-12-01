@@ -61,12 +61,10 @@ const ProductDetailPage = () => {
 
     const cargarStockVariante = async (varianteId) => {
         try {
-            const response = await fetch(`http://localhost:8081/api/logistica/inventario/variante/${varianteId}`);
+            const response = await fetch(`http://localhost:8081/api/inventario/stock/variante/${varianteId}`);
             if (response.ok) {
-                const inventarios = await response.json();
-                // Sumar stock de todas las ubicaciones
-                const stockTotal = inventarios.reduce((total, inv) => total + inv.cantidad, 0);
-                setStockDisponible(stockTotal);
+                const data = await response.json();
+                setStockDisponible(data.stockTotal || 0);
             } else {
                 setStockDisponible(0);
             }

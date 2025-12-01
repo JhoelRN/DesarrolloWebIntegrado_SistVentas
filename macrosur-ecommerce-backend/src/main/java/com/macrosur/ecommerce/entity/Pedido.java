@@ -28,7 +28,7 @@ public class Pedido {
     @Column(name = "fecha_pedido")
     private LocalDateTime fechaPedido = LocalDateTime.now();
     
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = EstadoPedidoConverter.class)
     @Column(name = "estado", nullable = false)
     private EstadoPedido estado = EstadoPedido.PENDIENTE_PAGO;
     
@@ -47,7 +47,7 @@ public class Pedido {
     @Column(name = "total_final", nullable = false)
     private BigDecimal totalFinal;
     
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = MetodoEntregaConverter.class)
     @Column(name = "metodo_entrega", nullable = false)
     private MetodoEntrega metodoEntrega;
     
@@ -91,6 +91,45 @@ public class Pedido {
         
         public String getDescripcion() {
             return descripcion;
+        }
+    }
+    
+    // Converters para mapear los enums a los valores de la base de datos
+    @Converter(autoApply = false)
+    public static class EstadoPedidoConverter implements AttributeConverter<EstadoPedido, String> {
+        @Override
+        public String convertToDatabaseColumn(EstadoPedido attribute) {
+            return attribute == null ? null : attribute.getDescripcion();
+        }
+
+        @Override
+        public EstadoPedido convertToEntityAttribute(String dbData) {
+            if (dbData == null) return null;
+            for (EstadoPedido estado : EstadoPedido.values()) {
+                if (estado.getDescripcion().equals(dbData)) {
+                    return estado;
+                }
+            }
+            throw new IllegalArgumentException("Estado desconocido: " + dbData);
+        }
+    }
+    
+    @Converter(autoApply = false)
+    public static class MetodoEntregaConverter implements AttributeConverter<MetodoEntrega, String> {
+        @Override
+        public String convertToDatabaseColumn(MetodoEntrega attribute) {
+            return attribute == null ? null : attribute.getDescripcion();
+        }
+
+        @Override
+        public MetodoEntrega convertToEntityAttribute(String dbData) {
+            if (dbData == null) return null;
+            for (MetodoEntrega metodo : MetodoEntrega.values()) {
+                if (metodo.getDescripcion().equals(dbData)) {
+                    return metodo;
+                }
+            }
+            throw new IllegalArgumentException("Método de entrega desconocido: " + dbData);
         }
     }
 }

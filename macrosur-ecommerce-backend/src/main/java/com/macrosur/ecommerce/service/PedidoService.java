@@ -5,6 +5,8 @@ import com.macrosur.ecommerce.dto.PedidoResponseDTO;
 import com.macrosur.ecommerce.entity.*;
 import com.macrosur.ecommerce.repository.*;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class PedidoService {
     private final VarianteProductoRepository varianteRepository;
     private final MovimientoStockRepository movimientoRepository;
     private final SeguimientoDespachoRepository seguimientoRepository;
+    private final OperadorLogisticoRepository operadorLogisticoRepository;
     private final InventarioService inventarioService;
     
     /**
@@ -225,12 +228,63 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findById(pedidoId)
             .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
         
-        pedido.setEstado(Pedido.EstadoPedido.valueOf(nuevoEstado));
+        // Convertir la descripción al enum correspondiente
+        Pedido.EstadoPedido estadoEnum = convertirDescripcionAEstado(nuevoEstado);
+        pedido.setEstado(estadoEnum);
         pedido = pedidoRepository.save(pedido);
         
         logger.info("🔄 Estado actualizado: Pedido={}, Estado={}", pedidoId, nuevoEstado);
         
         return convertirAPedidoDTO(pedido);
+    }
+    
+    /**
+     * Convertir descripción de estado a enum
+     */
+    private Pedido.EstadoPedido convertirDescripcionAEstado(String descripcion) {
+        for (Pedido.EstadoPedido estado : Pedido.EstadoPedido.values()) {
+            if (estado.getDescripcion().equals(descripcion)) {
+                return estado;
+            }
+        }
+        throw new RuntimeException("Estado no válido: " + descripcion);
+    }
+    
+    /**
+     * Asignar seguimiento a pedido
+     */
+    @Transactional
+    public Map<String, Object> asignarSeguimiento(Long pedidoId, String numeroGuia, String operadorNombre) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+            .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
+        
+        // Buscar operador por nombre (case insensitive)
+        OperadorLogistico operador = operadorLogisticoRepository.findAll().stream()
+            .filter(op -> op.getNombre().toLowerCase().contains(operadorNombre.toLowerCase()))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Operador logístico no encontrado: " + operadorNombre));
+        
+        // Crear o actualizar seguimiento
+        SeguimientoDespacho seguimiento = seguimientoRepository.findByPedidoId(pedidoId)
+            .orElse(new SeguimientoDespacho());
+        
+        seguimiento.setPedidoId(pedidoId);
+        seguimiento.setNumeroGuia(numeroGuia);
+        seguimiento.setOperador(operador);
+        seguimiento.setFechaDespacho(LocalDateTime.now());
+        seguimiento.setEstadoEnvio(SeguimientoDespacho.EstadoEnvio.EN_CAMINO);
+        
+        seguimiento = seguimientoRepository.save(seguimiento);
+        
+        logger.info("📦 Seguimiento asignado: Pedido={}, NumeroGuia={}, Operador={}", 
+            pedidoId, numeroGuia, operador.getNombre());
+        
+        return Map.of(
+            "mensaje", "Seguimiento asignado exitosamente",
+            "numeroGuia", numeroGuia,
+            "operador", operador.getNombre(),
+            "urlRastreo", operador.getUrlRastreoBase() + numeroGuia
+        );
     }
     
     /**

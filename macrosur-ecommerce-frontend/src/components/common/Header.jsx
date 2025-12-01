@@ -81,10 +81,14 @@ const Header = () => {
 
                         {/* 2. Iconos de Usuario y Carrito */}
                         <Nav className="ms-auto d-flex align-items-center">
-                            {/* Menú de Usuario Admin (AuthContext) */}
+                            {/* Menú de Usuario (AuthContext unificado para Admin y Cliente) */}
                             {isAuthenticated ? (
                                 <Dropdown align="end" className="me-2">
-                                    <Dropdown.Toggle variant="light" id="dropdown-basic" className="rounded-pill px-3">
+                                    <Dropdown.Toggle 
+                                        variant={userRole === 'CLIENTE' ? 'success' : 'light'} 
+                                        id="dropdown-basic" 
+                                        className="rounded-pill px-3"
+                                    >
                                         <i className="bi bi-person-circle me-1"></i> 
                                         {user?.name || 'Mi Cuenta'}
                                     </Dropdown.Toggle>
@@ -92,61 +96,37 @@ const Header = () => {
                                     <Dropdown.Menu>
                                         {userRole === 'CLIENTE' && (
                                             <>
-                                                <Dropdown.Item as={Link} to="/profile">Mi Perfil</Dropdown.Item>
-                                                <Dropdown.Item as={Link} to="/profile/orders">Mis Pedidos</Dropdown.Item>
-                                            </>
-                                        )}
-                                        {(userRole === 'ADMIN' || userRole === 'GESTOR') && (
-                                            <>
-                                                <Dropdown.Item as={Link} to="/admin/dashboard" className="text-danger">Panel Admin</Dropdown.Item>
+                                                <Dropdown.Item as={Link} to="/cliente/perfil">
+                                                    <i className="bi bi-person me-2"></i>Mi Perfil
+                                                </Dropdown.Item>
+                                                <Dropdown.Item as={Link} to="/mis-pedidos">
+                                                    <i className="bi bi-box-seam me-2"></i>Mis Pedidos
+                                                </Dropdown.Item>
                                                 <Dropdown.Divider />
                                             </>
                                         )}
-                                        <Dropdown.Item onClick={() => { navigate('/'); setTimeout(() => logout(), 100); }}>Cerrar Sesión</Dropdown.Item>
+                                        {(userRole === 'ADMIN' || userRole === 'GESTOR_LOGISTICA' || userRole === 'GESTOR_PRODUCTOS' || userRole === 'GESTOR_COMERCIAL') && (
+                                            <>
+                                                <Dropdown.Item as={Link} to="/admin/dashboard" className="text-danger">
+                                                    <i className="bi bi-speedometer2 me-2"></i>Panel Admin
+                                                </Dropdown.Item>
+                                                <Dropdown.Divider />
+                                            </>
+                                        )}
+                                        <Dropdown.Item onClick={() => { logout(); navigate('/'); }}>
+                                            <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                                        </Dropdown.Item>
                                     </Dropdown.Menu>
                                 </Dropdown>
                             ) : (
                                 <>
-                                    {/* Botón Cliente si hay cliente logueado (clientAuth) */}
-                                    {(() => {
-                                        const clienteActual = localStorage.getItem('cliente');
-                                        if (clienteActual) {
-                                            const cliente = JSON.parse(clienteActual);
-                                            return (
-                                                <Dropdown align="end" className="me-2">
-                                                    <Dropdown.Toggle variant="success" size="sm" className="rounded-pill px-3">
-                                                        <i className="bi bi-person-check-fill me-1"></i> 
-                                                        {cliente.nombre}
-                                                    </Dropdown.Toggle>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Item as={Link} to="/cliente/perfil">
-                                                            <i className="bi bi-person me-2"></i>Mi Perfil
-                                                        </Dropdown.Item>
-                                                        <Dropdown.Divider />
-                                                        <Dropdown.Item onClick={() => {
-                                                            localStorage.removeItem('cliente');
-                                                            localStorage.removeItem('clienteId');
-                                                            localStorage.removeItem('clientToken');
-                                                            window.location.reload();
-                                                        }}>
-                                                            <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-                                                        </Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
+                                    <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
+                                        <i className="bi bi-person me-1"></i>Iniciar Sesión
+                                    </Nav.Link>
                                     
-                                    {!localStorage.getItem('cliente') && (
-                                        <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
-                                            Iniciar Sesión
-                                        </Nav.Link>
-                                    )}
-                                    
-                                    {/* Enlace visible al login de Admin (distinto al login de clientes) */}
+                                    {/* Enlace al login de Admin */}
                                     <Nav.Link as={Link} to="/admin/login" className="btn btn-outline-danger me-2 rounded-pill px-3 d-none d-lg-inline">
-                                        Admin Login
+                                        <i className="bi bi-shield-lock me-1"></i>Admin
                                     </Nav.Link>
                                 </>
                             )}

@@ -1,25 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Table, Badge, Button, Modal, Form, Alert, Spinner } from 'react-bootstrap';
+import { Container, Table, Badge, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 
 const CustomerOrdersPage = () => {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  // Modal para asignar seguimiento
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPedido, setSelectedPedido] = useState(null);
-  const [operadores, setOperadores] = useState([]);
-  const [seguimientoData, setSeguimientoData] = useState({
-    operadorId: '',
-    numeroGuia: '',
-    fechaEstimadaEntrega: ''
-  });
 
   useEffect(() => {
     cargarPedidos();
-    cargarOperadores();
   }, []);
 
   const cargarPedidos = async () => {
@@ -34,53 +23,24 @@ const CustomerOrdersPage = () => {
     }
   };
 
-  const cargarOperadores = async () => {
-    try {
-      const response = await axios.get('http://localhost:8081/api/logistica/operadores');
-      setOperadores(response.data);
-    } catch (err) {
-      console.error('Error al cargar operadores:', err);
-    }
-  };
-
   const cambiarEstadoPedido = async (pedidoId, nuevoEstado) => {
     try {
-      await axios.put(`http://localhost:8081/api/pedidos/${pedidoId}/estado?estado=${nuevoEstado}`);
+      await axios.put(`http://localhost:8081/api/pedidos/${pedidoId}/estado?estado=${encodeURIComponent(nuevoEstado)}`);
+      alert(`Pedido actualizado a: ${nuevoEstado}`);
       cargarPedidos();
     } catch (err) {
-      alert('Error al cambiar estado del pedido');
+      alert('Error al cambiar estado del pedido: ' + (err.response?.data?.message || err.message));
     }
   };
 
-  const abrirModalSeguimiento = (pedido) => {
-    setSelectedPedido(pedido);
-    setShowModal(true);
-    setSeguimientoData({
-      operadorId: '',
-      numeroGuia: '',
-      fechaEstimadaEntrega: ''
-    });
-  };
-
-  const crearSeguimiento = async () => {
+  const derivarALogistica = async (pedidoId) => {
     try {
-      const payload = {
-        pedidoId: selectedPedido.pedidoId,
-        operadorId: parseInt(seguimientoData.operadorId),
-        numeroGuia: seguimientoData.numeroGuia,
-        fechaEstimadaEntrega: seguimientoData.fechaEstimadaEntrega ? new Date(seguimientoData.fechaEstimadaEntrega).toISOString() : null
-      };
-
-      await axios.post('http://localhost:8081/api/logistica/seguimiento', payload);
-      
-      // Cambiar estado del pedido a DESPACHADO
-      await cambiarEstadoPedido(selectedPedido.pedidoId, 'DESPACHADO');
-      
-      setShowModal(false);
-      alert('Seguimiento creado exitosamente');
+      // Cambiar estado a "Listo para Despacho" sin navegar a otra área
+      await axios.put(`http://localhost:8081/api/pedidos/${pedidoId}/estado?estado=${encodeURIComponent('En Preparacion')}`);
+      alert('✓ Pedido derivado a Logística exitosamente.\n\nEl área de Logística se encargará de asignar el seguimiento de envío.');
       cargarPedidos();
     } catch (err) {
-      alert('Error al crear seguimiento: ' + (err.response?.data?.message || err.message));
+      alert('Error al derivar pedido: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -107,8 +67,15 @@ const CustomerOrdersPage = () => {
 
   return (
     <Container fluid className="py-4">
-      <h2><i className="bi bi-cart-check me-2"></i>Gestión de Pedidos de Clientes</h2>
-      <p className="text-muted">Administra los pedidos realizados por los clientes en la tienda online</p>
+      <Row className="mb-4">
+        <Col>
+          <h2><i className="bi bi-cart-check me-2"></i>Gestión Comercial de Pedidos</h2>
+          <p className="text-muted">
+            Administra el proceso comercial: confirmación de pago y preparación de pedidos.
+            Una vez preparado, deriva el pedido a Logística para asignación de seguimiento.
+          </p>
+        </Col>
+      </Row>
       
       {error && <Alert variant="danger">{error}</Alert>}
 
@@ -158,38 +125,74 @@ const CustomerOrdersPage = () => {
                   )}
                 </td>
                 <td>
-                  {pedido.estado === 'Pagado' && !pedido.seguimiento && (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={() => abrirModalSeguimiento(pedido)}
-                    >
-                      <i className="bi bi-truck me-1"></i>
-                      Asignar Envío
-                    </Button>
-                  )}
-                  
-                  {pedido.estado === 'En Preparacion' && !pedido.seguimiento && (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={() => abrirModalSeguimiento(pedido)}
-                    >
-                      <i className="bi bi-truck me-1"></i>
-                      Asignar Envío
-                    </Button>
-                  )}
+                  <div className="d-flex gap-2 flex-wrap">
+                    {/* Pendiente Pago → Pagado */}
+                    {pedido.estado === 'Pendiente Pago' && (
+                      <Button
+                        size="sm"
+                        variant="success"
+                        onClick={() => cambiarEstadoPedido(pedido.pedidoId, 'Pagado')}
+                        title="Confirmar pago recibido"
+                      >
+                        <i className="bi bi-check-circle me-1"></i>
+                        Confirmar Pago
+                      </Button>
+                    )}
 
-                  {pedido.estado === 'Despachado' && (
-                    <Button
-                      size="sm"
-                      variant="success"
-                      onClick={() => cambiarEstadoPedido(pedido.pedidoId, 'ENTREGADO')}
-                    >
-                      <i className="bi bi-check-circle me-1"></i>
-                      Marcar Entregado
-                    </Button>
-                  )}
+                    {/* Pagado → En Preparación */}
+                    {pedido.estado === 'Pagado' && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => cambiarEstadoPedido(pedido.pedidoId, 'En Preparacion')}
+                        title="Marcar pedido en preparación"
+                      >
+                        <i className="bi bi-box-seam me-1"></i>
+                        Preparar
+                      </Button>
+                    )}
+
+                    {/* En Preparación → Marcar como listo para Logística */}
+                    {pedido.estado === 'En Preparacion' && !pedido.seguimiento && (
+                      <Button
+                        size="sm"
+                        variant="info"
+                        onClick={() => {
+                          if (window.confirm('¿Marcar este pedido como listo para que Logística asigne el seguimiento?')) {
+                            derivarALogistica(pedido.pedidoId);
+                          }
+                        }}
+                        title="Notificar a logística que el pedido está listo"
+                      >
+                        <i className="bi bi-check2-circle me-1"></i>
+                        Listo para Logística
+                      </Button>
+                    )}
+
+                    {/* Mostrar si ya tiene seguimiento asignado por Logística */}
+                    {pedido.seguimiento && (
+                      <Badge bg="success" className="d-flex align-items-center gap-1">
+                        <i className="bi bi-truck"></i>
+                        Gestionado por Logística
+                      </Badge>
+                    )}
+
+                    {/* Opción de cancelar */}
+                    {(pedido.estado === 'Pendiente Pago' || pedido.estado === 'Pagado') && (
+                      <Button
+                        size="sm"
+                        variant="outline-danger"
+                        onClick={() => {
+                          if (window.confirm('¿Estás seguro de cancelar este pedido?')) {
+                            cambiarEstadoPedido(pedido.pedidoId, 'Cancelado');
+                          }
+                        }}
+                        title="Cancelar pedido"
+                      >
+                        <i className="bi bi-x-circle"></i>
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -197,72 +200,7 @@ const CustomerOrdersPage = () => {
         </Table>
       )}
 
-      {/* Modal para asignar seguimiento */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Asignar Seguimiento de Envío</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedPedido && (
-            <>
-              <Alert variant="info">
-                <strong>Pedido #{selectedPedido.pedidoId}</strong><br />
-                Total: ${selectedPedido.totalFinal.toLocaleString('es-CL')}<br />
-                {selectedPedido.detalles.length} productos
-              </Alert>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Operador Logístico</Form.Label>
-                <Form.Select
-                  value={seguimientoData.operadorId}
-                  onChange={(e) => setSeguimientoData({...seguimientoData, operadorId: e.target.value})}
-                  required
-                >
-                  <option value="">Selecciona un operador</option>
-                  {operadores.map(op => (
-                    <option key={op.operadorId} value={op.operadorId}>
-                      {op.nombre}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Número de Guía</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={seguimientoData.numeroGuia}
-                  onChange={(e) => setSeguimientoData({...seguimientoData, numeroGuia: e.target.value})}
-                  placeholder="Ej: 1234567890"
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Fecha Estimada de Entrega</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={seguimientoData.fechaEstimadaEntrega}
-                  onChange={(e) => setSeguimientoData({...seguimientoData, fechaEstimadaEntrega: e.target.value})}
-                />
-              </Form.Group>
-            </>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            onClick={crearSeguimiento}
-            disabled={!seguimientoData.operadorId || !seguimientoData.numeroGuia}
-          >
-            <i className="bi bi-check-circle me-2"></i>
-            Crear Seguimiento
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </Container>
   );
 };

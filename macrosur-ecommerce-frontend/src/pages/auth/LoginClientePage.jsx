@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import { loginManual, loginConGoogle, loginConMicrosoft } from '../../api/clientAuth';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { loginConGoogle, loginConMicrosoft } from '../../api/clientAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LoginClientePage = () => {
     const [email, setEmail] = useState('');
@@ -10,6 +11,8 @@ const LoginClientePage = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,16 +20,21 @@ const LoginClientePage = () => {
         setLoading(true);
 
         try {
-            // Login manual de cliente (no de administrador)
-            const clienteData = await loginManual(email, password);
+            // Login usando AuthContext (isAdmin = false para clientes)
+            const success = await login(email, password, false, rememberMe);
             
-            console.log('✅ Login exitoso:', clienteData);
-            
-            // Redirigir al perfil del cliente
-            navigate('/cliente/perfil');
+            if (success) {
+                console.log('✅ Login exitoso');
+                
+                // Redirigir a la página de origen o a la página principal
+                const from = location.state?.from || '/';
+                navigate(from, { replace: true });
+            } else {
+                setError('Credenciales inválidas. Por favor, verifica tu correo y contraseña.');
+            }
         } catch (err) {
             console.error('❌ Error en login:', err);
-            setError(typeof err === 'string' ? err : 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.');
+            setError('Error al iniciar sesión. Por favor, intenta nuevamente.');
         } finally {
             setLoading(false);
         }
