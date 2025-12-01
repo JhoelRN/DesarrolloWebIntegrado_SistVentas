@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte de Ventas</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .report-info {
+            background: white;
+            padding: 20px;
+            border-left: 5px solid #dc3545;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .report-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .report-info td {
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .report-info .label {
+            color: #6c757d;
+            width: 150px;
+        }
+        
+        .report-info .value {
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .summary-cards {
+            display: table;
+            width: 100%;
+            margin: 30px 0;
+            border-spacing: 15px;
+        }
+        
+        .summary-card {
+            display: table-cell;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 25%;
+        }
+        
+        .card-revenue {
+            border-left: 5px solid #28a745;
+        }
+        
+        .card-orders {
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .card-average {
+            border-left: 5px solid #ffc107;
+        }
+        
+        .card-products {
+            border-left: 5px solid #6f42c1;
+        }
+        
+        .summary-card h3 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .summary-card p {
+            margin: 8px 0 0 0;
+            color: #6c757d;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .section-title {
+            color: #333;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 35px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #dc3545;
+        }
+        
+        .top-products-table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            margin: 15px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .top-products-table thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .top-products-table th {
+            padding: 15px;
+            text-align: left;
+            font-size: 12px;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .top-products-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+        
+        .top-products-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .top-products-table td {
+            padding: 15px;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .rank-badge {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .rank-1 { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #333; }
+        .rank-2 { background: linear-gradient(135deg, #c0c0c0 0%, #d3d3d3 100%); color: #333; }
+        .rank-3 { background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%); color: white; }
+        .rank-other { background: #6c757d; }
+        
+        .revenue-amount {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .payment-methods {
+            display: table;
+            width: 100%;
+            margin: 20px 0;
+            border-spacing: 15px;
+        }
+        
+        .payment-card {
+            display: table-cell;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 33.33%;
+        }
+        
+        .payment-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+        
+        .payment-name {
+            font-size: 14px;
+            color: #6c757d;
+            margin: 5px 0;
+        }
+        
+        .payment-amount {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+        
+        .payment-percentage {
+            font-size: 12px;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .bar-chart {
+            margin: 20px 0;
+        }
+        
+        .bar-item {
+            margin-bottom: 15px;
+        }
+        
+        .bar-label {
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .bar-container {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .bar-fill {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .comparison-box {
+            background: #e7f3ff;
+            border-left: 4px solid #0d6efd;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .comparison-box h4 {
+            margin: 0 0 15px 0;
+            color: #084298;
+            font-size: 16px;
+        }
+        
+        .comparison-grid {
+            display: table;
+            width: 100%;
+            border-spacing: 10px;
+        }
+        
+        .comparison-item {
+            display: table-cell;
+            width: 50%;
+        }
+        
+        .comparison-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .comparison-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #084298;
+        }
+        
+        .trend-up {
+            color: #28a745;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        
+        .trend-down {
+            color: #dc3545;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            background: white;
+            border-radius: 0 0 10px 10px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .footer strong {
+            color: #333;
+        }
+        
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>REPORTE DE VENTAS</h1>
+        <p class="subtitle">MACROSUR E-COMMERCE</p>
+        <p class="subtitle" th:text="${'Período: ' + periodDescription}">Período: Noviembre 2025</p>
+    </div>
+    
+    <div class="report-info">
+        <table>
+            <tr>
+                <td class="label">Fecha de Generación:</td>
+                <td class="value" th:text="${#dates.format(reportDate, 'dd/MM/yyyy HH:mm')}">28/11/2025 10:30</td>
+                <td class="label">Generado por:</td>
+                <td class="value" th:text="${generatedBy}">Admin Usuario</td>
+            </tr>
+            <tr>
+                <td class="label">Período:</td>
+                <td class="value" th:text="${#dates.format(startDate, 'dd/MM/yyyy') + ' - ' + #dates.format(endDate, 'dd/MM/yyyy')}">01/11/2025 - 28/11/2025</td>
+                <td class="label">Total de Días:</td>
+                <td class="value" th:text="${totalDays}">28 días</td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card card-revenue">
+            <h3 th:text="'S/ ' + ${#numbers.formatDecimal(totalRevenue, 1, 'POINT', 2, 'COMMA')}">S/ 125,450.00</h3>
+            <p>Ingresos Totales</p>
+        </div>
+        <div class="summary-card card-orders">
+            <h3 th:text="${totalOrders}">342</h3>
+            <p>Pedidos Realizados</p>
+        </div>
+        <div class="summary-card card-average">
+            <h3 th:text="'S/ ' + ${#numbers.formatDecimal(averageOrderValue, 1, 'POINT', 2, 'COMMA')}">S/ 367.00</h3>
+            <p>Ticket Promedio</p>
+        </div>
+        <div class="summary-card card-products">
+            <h3 th:text="${totalProductsSold}">1,245</h3>
+            <p>Productos Vendidos</p>
+        </div>
+    </div>
+    
+    <!-- Comparison with Previous Period -->
+    <div class="comparison-box no-break">
+        <h4>📊 Comparación con Período Anterior</h4>
+        <div class="comparison-grid">
+            <div class="comparison-item">
+                <div class="comparison-label">Crecimiento en Ventas</div>
+                <div class="comparison-value">
+                    <span th:text="${revenueGrowth + '%'}">+15.5%</span>
+                    <span class="trend-up" th:if="${revenueGrowth > 0}">▲</span>
+                    <span class="trend-down" th:if="${revenueGrowth < 0}">▼</span>
+                </div>
+            </div>
+            <div class="comparison-item">
+                <div class="comparison-label">Crecimiento en Pedidos</div>
+                <div class="comparison-value">
+                    <span th:text="${ordersGrowth + '%'}">+8.3%</span>
+                    <span class="trend-up" th:if="${ordersGrowth > 0}">▲</span>
+                    <span class="trend-down" th:if="${ordersGrowth < 0}">▼</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Products -->
+    <h2 class="section-title">🏆 Productos Más Vendidos</h2>
+    <table class="top-products-table no-break">
+        <thead>
+            <tr>
+                <th style="width: 60px;">Ranking</th>
+                <th>Producto</th>
+                <th style="text-align: center; width: 120px;">Cantidad</th>
+                <th style="text-align: right; width: 150px;">Ingresos</th>
+                <th style="text-align: center; width: 100px;">% Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="product, iterStat : ${topProducts}">
+                <td style="text-align: center;">
+                    <span class="rank-badge" 
+                          th:classappend="${iterStat.index == 0} ? 'rank-1' : (${iterStat.index == 1} ? 'rank-2' : (${iterStat.index == 2} ? 'rank-3' : 'rank-other'))"
+                          th:text="${iterStat.index + 1}">1</span>
+                </td>
+                <td>
+                    <strong th:text="${product.name}">Laptop HP Pavilion</strong>
+                    <br/>
+                    <small style="color: #6c757d;">SKU: <span th:text="${product.sku}">LAP-HP-001</span></small>
+                </td>
+                <td style="text-align: center; font-weight: bold;" th:text="${product.quantitySold}">125</td>
+                <td style="text-align: right;">
+                    <span class="revenue-amount" th:text="'S/ ' + ${#numbers.formatDecimal(product.revenue, 1, 'POINT', 2, 'COMMA')}">S/ 45,250.00</span>
+                </td>
+                <td style="text-align: center; color: #6c757d;" th:text="${#numbers.formatDecimal(product.percentageOfTotal, 1, 2)} + '%'">36.1%</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <!-- Page Break -->
+    <div class="page-break"></div>
+    
+    <!-- Payment Methods -->
+    <h2 class="section-title">💳 Métodos de Pago</h2>
+    <div class="payment-methods no-break">
+        <div class="payment-card" th:each="payment : ${paymentMethods}">
+            <div class="payment-icon" th:text="${payment.icon}">💳</div>
+            <div class="payment-name" th:text="${payment.name}">Tarjeta de Crédito</div>
+            <div class="payment-amount" th:text="'S/ ' + ${#numbers.formatDecimal(payment.amount, 1, 'POINT', 2, 'COMMA')}">S/ 65,250.00</div>
+            <div class="payment-percentage" th:text="${#numbers.formatDecimal(payment.percentage, 1, 1)} + '%'">52.0%</div>
+        </div>
+    </div>
+    
+    <!-- Sales by Category -->
+    <div class="chart-container no-break">
+        <div class="chart-title">📦 Ventas por Categoría</div>
+        <div class="bar-chart">
+            <div class="bar-item" th:each="category : ${salesByCategory}">
+                <span class="bar-label" th:text="${category.name + ' (S/ ' + #numbers.formatDecimal(category.amount, 1, 'POINT', 2, 'COMMA') + ')'}">
+                    Electrónica (S/ 55,280.00)
+                </span>
+                <div class="bar-container">
+                    <div class="bar-fill" th:style="'width: ' + ${category.percentage} + '%'" 
+                         th:text="${#numbers.formatDecimal(category.percentage, 1, 1)} + '%'">
+                        44.0%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Daily Sales Trend -->
+    <div class="chart-container no-break">
+        <div class="chart-title">📈 Tendencia de Ventas Diarias</div>
+        <div class="bar-chart">
+            <div class="bar-item" th:each="daily : ${dailySales}" th:if="${dailyStat.index < 10}">
+                <span class="bar-label" th:text="${#dates.format(daily.date, 'dd/MM')} + ' - S/ ' + ${#numbers.formatDecimal(daily.amount, 1, 'POINT', 2, 'COMMA')}">
+                    01/11 - S/ 4,250.00
+                </span>
+                <div class="bar-container">
+                    <div class="bar-fill" th:style="'width: ' + ${(daily.amount / maxDailyAmount) * 100} + '%'"
+                         th:text="'S/ ' + ${#numbers.formatDecimal(daily.amount, 1, 2)}">
+                        S/ 4,250.00
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p><strong>Macrosur E-commerce</strong> | Sistema de Reportes</p>
+        <p>Este reporte es confidencial y de uso exclusivo interno</p>
+        <p>Generado: <span th:text="${#dates.format(reportDate, 'dd/MM/yyyy HH:mm:ss')}">28/11/2025 10:30:45</span></p>
+    </div>
+</body>
+</html>

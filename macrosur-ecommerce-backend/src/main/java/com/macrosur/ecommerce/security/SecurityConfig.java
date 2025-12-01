@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/debug/**").permitAll() // TEMPORAL: Para debugging
                         .requestMatchers("/api/categorias", "/api/categorias/**").permitAll() // TEMPORAL: Endpoints de categorías públicos
                         .requestMatchers("/api/productos", "/api/productos/**").permitAll() // TEMPORAL: Endpoints de productos públicos
+                        .requestMatchers("/api/logistica/**").authenticated() // Endpoints de logística requieren autenticación JWT
                         .requestMatchers("/uploads/**").permitAll() // Servir archivos estáticos (imágenes)
                         .requestMatchers("/error", "/actuator/health").permitAll()
                         .anyRequest().authenticated()

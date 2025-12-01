@@ -121,6 +121,21 @@ public class ProductoController {
     }
 
     /**
+     * GET /api/productos/{id}/variantes - Obtener variantes de un producto
+     * Público - para selector de variantes en detalle de producto
+     */
+    @GetMapping("/{id}/variantes")
+    public ResponseEntity<?> obtenerVariantesPorProducto(@PathVariable Integer id) {
+        try {
+            List<Map<String, Object>> variantes = productoService.obtenerVariantesPorProducto(id);
+            return ResponseEntity.ok(variantes);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * POST /api/productos - Crear nuevo producto
      * Requiere permiso: GESTIONAR_PRODUCTOS
      */
@@ -284,5 +299,36 @@ public class ProductoController {
     public ResponseEntity<ProductoService.ProductoStats> obtenerEstadisticas() {
         ProductoService.ProductoStats stats = productoService.obtenerEstadisticas();
         return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * GET /api/productos/variantes - Obtener todas las variantes de productos
+     * Endpoint público para selección en órdenes de reposición
+     */
+    @GetMapping("/variantes")
+    public ResponseEntity<?> obtenerTodasLasVariantes() {
+        try {
+            List<?> variantes = productoService.obtenerTodasLasVariantes();
+            return ResponseEntity.ok(variantes);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al obtener variantes: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/productos/variantes/reposicion - Obtener variantes que necesitan reposición
+     * Incluye: variantes con stock bajo y variantes sin inventario (productos nuevos)
+     * Endpoint para dropdown en órdenes de reposición
+     */
+    @GetMapping("/variantes/reposicion")
+    public ResponseEntity<?> obtenerVariantesParaReposicion() {
+        try {
+            List<?> variantes = productoService.obtenerVariantesParaReposicion();
+            return ResponseEntity.ok(variantes);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al obtener variantes para reposición: " + e.getMessage()));
+        }
     }
 }

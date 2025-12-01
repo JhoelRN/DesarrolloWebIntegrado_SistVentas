@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Catálogo de Productos</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .report-info {
+            background: white;
+            padding: 15px 20px;
+            border-left: 5px solid #dc3545;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .report-info-grid {
+            display: table;
+            width: 100%;
+        }
+        
+        .report-info-item {
+            display: table-cell;
+            padding: 5px 15px 5px 0;
+        }
+        
+        .report-info-label {
+            color: #6c757d;
+            font-size: 12px;
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        .report-info-value {
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .summary-stats {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+            border-spacing: 15px;
+        }
+        
+        .stat-card {
+            display: table-cell;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 25%;
+        }
+        
+        .stat-card.active {
+            border-left: 5px solid #28a745;
+        }
+        
+        .stat-card.low-stock {
+            border-left: 5px solid #ffc107;
+        }
+        
+        .stat-card.out-of-stock {
+            border-left: 5px solid #dc3545;
+        }
+        
+        .stat-card.total {
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 8px 0;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .category-section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        
+        .category-header {
+            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        
+        .category-description {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            font-size: 13px;
+            color: #6c757d;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .products-grid {
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .product-row {
+            display: table;
+            width: 100%;
+            border-bottom: 1px solid #e9ecef;
+            padding: 15px 0;
+        }
+        
+        .product-row:last-child {
+            border-bottom: none;
+        }
+        
+        .product-image {
+            display: table-cell;
+            width: 100px;
+            vertical-align: middle;
+        }
+        
+        .product-image img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .product-info {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 15px;
+        }
+        
+        .product-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 5px 0;
+        }
+        
+        .product-sku {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .product-description {
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.5;
+            margin: 5px 0;
+        }
+        
+        .product-details {
+            display: table-cell;
+            vertical-align: middle;
+            width: 200px;
+            text-align: right;
+        }
+        
+        .product-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+        
+        .product-discount {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        
+        .product-original-price {
+            font-size: 14px;
+            color: #6c757d;
+            text-decoration: line-through;
+            margin-left: 5px;
+        }
+        
+        .product-stock {
+            display: table-cell;
+            vertical-align: middle;
+            width: 120px;
+            text-align: center;
+        }
+        
+        .stock-badge {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+        
+        .stock-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .stock-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .stock-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .stock-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 5px;
+        }
+        
+        .variants-list {
+            margin-top: 8px;
+            padding-left: 15px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .variant-item {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 3px;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding: 20px;
+            text-align: center;
+            background: white;
+            border-radius: 10px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .footer strong {
+            color: #333;
+        }
+        
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CATÁLOGO DE PRODUCTOS</h1>
+        <p class="subtitle">MACROSUR E-COMMERCE</p>
+    </div>
+    
+    <div class="report-info">
+        <div class="report-info-grid">
+            <div class="report-info-item">
+                <span class="report-info-label">Fecha de Generación:</span>
+                <span class="report-info-value" th:text="${#dates.format(reportDate, 'dd/MM/yyyy HH:mm')}">28/11/2025 10:30</span>
+            </div>
+            <div class="report-info-item">
+                <span class="report-info-label">Total de Productos:</span>
+                <span class="report-info-value" th:text="${totalProducts}">150</span>
+            </div>
+            <div class="report-info-item">
+                <span class="report-info-label">Categorías:</span>
+                <span class="report-info-value" th:text="${totalCategories}">8</span>
+            </div>
+            <div class="report-info-item">
+                <span class="report-info-label">Generado por:</span>
+                <span class="report-info-value" th:text="${generatedBy}">Admin Usuario</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Statistics -->
+    <div class="summary-stats">
+        <div class="stat-card active">
+            <div class="stat-number" th:text="${activeProducts}">135</div>
+            <div class="stat-label">Productos Activos</div>
+        </div>
+        <div class="stat-card low-stock">
+            <div class="stat-number" th:text="${lowStockProducts}">12</div>
+            <div class="stat-label">Stock Bajo</div>
+        </div>
+        <div class="stat-card out-of-stock">
+            <div class="stat-number" th:text="${outOfStockProducts}">3</div>
+            <div class="stat-label">Sin Stock</div>
+        </div>
+        <div class="stat-card total">
+            <div class="stat-number" th:text="'S/ ' + ${#numbers.formatDecimal(totalInventoryValue, 1, 'POINT', 0, 'COMMA')}">S/ 450,250</div>
+            <div class="stat-label">Valor Inventario</div>
+        </div>
+    </div>
+    
+    <!-- Products by Category -->
+    <div th:each="category : ${categories}" class="category-section no-break">
+        <div class="category-header" th:text="${category.name}">Electrónica</div>
+        <div class="category-description" th:if="${category.description != null}" th:text="${category.description}">
+            Productos de electrónica y tecnología
+        </div>
+        
+        <div class="products-grid">
+            <div th:each="product : ${category.products}" class="product-row">
+                <!-- Product Image -->
+                <div class="product-image">
+                    <img th:src="${product.imageUrl != null ? product.imageUrl : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjhGOUZBIi8+CjxwYXRoIGQ9Ik00MCAyMEMyOC45NTQzIDIwIDIwIDI4Ljk1NDMgMjAgNDBDMjAgNTEuMDQ1NyAyOC45NTQzIDYwIDQwIDYwQzUxLjA0NTcgNjAgNjAgNTEuMDQ1NyA2MCA0MEM2MCAyOC45NTQzIDUxLjA0NTcgMjAgNDAgMjBaTTQwIDI2QzQ0LjQxODMgMjYgNDggMjkuNTgxNyA0OCAzNEM0OCAzOC40MTgzIDQ0LjQxODMgNDIgNDAgNDJDMzUuNTgxNyA0MiAzMiAzOC40MTgzIDMyIDM0QzMyIDI5LjU4MTcgMzUuNTgxNyAyNiA0MCAyNlpNNDAgNTRDMzQuNjY2NyA1NCAzMC4xNjY3IDUyLjMzMzMgMjYuNSA0OUMyNi41IDQ2LjMzMzMgMzAuODMzMyA0NCAzNiA0NEg0NEMzNi44MzMzIDQ0IDQxLjE2NjcgNDYuMzMzMyA0MS4xNjY3IDQ5QzQxLjE2NjcgNTIuMzMzMyAzNi42NjY3IDU0IDQwIDU0WiIgZmlsbD0iI0RFRTJFNiIvPgo8L3N2Zz4K'}"
+                         alt="Producto"/>
+                </div>
+                
+                <!-- Product Info -->
+                <div class="product-info">
+                    <div class="product-name" th:text="${product.name}">Laptop HP Pavilion 15</div>
+                    <div class="product-sku">
+                        SKU: <span th:text="${product.sku}">LAP-HP-001</span> | 
+                        Marca: <span th:text="${product.brand != null ? product.brand : 'N/A'}">HP</span>
+                    </div>
+                    <div class="product-description" th:if="${product.description != null}" th:text="${product.description}">
+                        Laptop con procesador Intel Core i5, 8GB RAM, 256GB SSD
+                    </div>
+                    
+                    <!-- Variants if available -->
+                    <div class="variants-list" th:if="${product.variants != null and !product.variants.isEmpty()}">
+                        <strong>Variantes:</strong>
+                        <span th:each="variant : ${product.variants}" class="variant-item" th:text="${variant}">Negro - 8GB</span>
+                    </div>
+                </div>
+                
+                <!-- Product Details -->
+                <div class="product-details">
+                    <div class="product-price" th:text="'S/ ' + ${#numbers.formatDecimal(product.price, 1, 'POINT', 2, 'COMMA')}">S/ 2,499.00</div>
+                    
+                    <div th:if="${product.discount != null and product.discount > 0}">
+                        <span class="product-discount" th:text="'-' + ${product.discount} + '%'">-15%</span>
+                        <span class="product-original-price" th:text="'S/ ' + ${#numbers.formatDecimal(product.originalPrice, 1, 'POINT', 2, 'COMMA')}">S/ 2,940.00</span>
+                    </div>
+                </div>
+                
+                <!-- Stock Status -->
+                <div class="product-stock">
+                    <div th:if="${product.stock > product.minStock}" class="stock-badge stock-ok">
+                        DISPONIBLE
+                    </div>
+                    <div th:if="${product.stock > 0 and product.stock <= product.minStock}" class="stock-badge stock-low">
+                        STOCK BAJO
+                    </div>
+                    <div th:if="${product.stock == 0}" class="stock-badge stock-out">
+                        AGOTADO
+                    </div>
+                    <div class="stock-number" th:text="${product.stock} + ' und.'">25 und.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p><strong>Macrosur E-commerce</strong> | Catálogo de Productos</p>
+        <p>Para más información, visita nuestra tienda en línea</p>
+        <p>Generado: <span th:text="${#dates.format(reportDate, 'dd/MM/yyyy HH:mm:ss')}">28/11/2025 10:30:45</span></p>
+    </div>
+</body>
+</html>

@@ -109,6 +109,33 @@
             <version>5.2.3</version>
         </dependency>
 
+        <!-- Flying Saucer - HTML to PDF (Professional PDF generation) -->
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-pdf</artifactId>
+            <version>9.7.2</version>
+        </dependency>
+
+        <!-- iText 7 - Professional PDF generation for logistics orders -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext7-core</artifactId>
+            <version>7.2.5</version>
+            <type>pom</type>
+        </dependency>
+
+        <!-- Thymeleaf for HTML templates -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- Spring Mail for email notifications -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- JDBC template (si no está) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
