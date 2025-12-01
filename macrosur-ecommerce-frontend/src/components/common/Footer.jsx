@@ -69,7 +69,7 @@ const Footer = () => {
                             <li><Link to="/info/politica-devoluciones" className="text-decoration-none text-reset hover-white transition">Cambios y Devoluciones</Link></li>
                             <li><Link to="/info/terminos" className="text-decoration-none text-reset hover-white transition">Términos y Condiciones</Link></li>
                             <li><Link to="/info/privacidad" className="text-decoration-none text-reset hover-white transition">Política de Privacidad</Link></li>
-                            <li><Link to="cliente/libro-reclamaciones" className="text-decoration-none text-reset hover-white transition"><i className="bi bi-book me-1"></i>Libro de Reclamaciones</Link></li>
+                            <li><Link to="/cliente/libro-reclamaciones" className="text-decoration-none text-reset hover-white transition"><i className="bi bi-book me-1"></i>Libro de Reclamaciones</Link></li>
                         </ul>
                     </Col>
 
