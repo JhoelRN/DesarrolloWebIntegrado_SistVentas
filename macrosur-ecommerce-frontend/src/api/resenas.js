@@ -8,18 +8,39 @@ const API_URL = 'http://localhost:8081/api/resenas';
 
 /**
  * Obtener headers con autenticación
+ * Soporta tanto el nuevo sistema (authToken) como el legacy (clienteId)
  */
 const getAuthHeaders = () => {
-  const clienteId = localStorage.getItem('clienteId');
-  const token = localStorage.getItem('clientToken');
+  // Intentar primero con el nuevo sistema de AuthContext
+  const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+  let headers = {};
   
-  const headers = {};
-  if (clienteId) {
-    headers['X-Cliente-Id'] = clienteId;
+  if (authToken) {
+    try {
+      // Para clientes, authToken es el objeto completo
+      const clientData = JSON.parse(authToken);
+      if (clientData.clienteId) {
+        headers['X-Cliente-Id'] = clientData.clienteId;
+      }
+      if (clientData.token) {
+        headers['Authorization'] = `Bearer ${clientData.token}`;
+      }
+    } catch {
+      // Si falla el parse, puede ser un JWT de admin - ignorar para clientes
+    }
+  } else {
+    // Fallback al sistema legacy
+    const clienteId = localStorage.getItem('clienteId');
+    const token = localStorage.getItem('clientToken');
+    
+    if (clienteId) {
+      headers['X-Cliente-Id'] = clienteId;
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  
   return headers;
 };
 

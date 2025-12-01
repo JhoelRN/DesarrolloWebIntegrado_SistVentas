@@ -163,9 +163,26 @@ export const procesarCallbackOAuth = async (hash) => {
  */
 export const obtenerPerfil = async () => {
   try {
-    const response = await axios.get(`${API_URL}/perfil`, {
-      headers: getAuthHeaders()
-    });
+    // Intentar obtener token del AuthContext primero (login unificado)
+    const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    let headers = {};
+    
+    if (authToken) {
+      // Si hay authToken, intentar parsearlo como objeto (cliente) o usar como token
+      try {
+        const clientData = JSON.parse(authToken);
+        if (clientData.clienteId) {
+          headers['X-Cliente-Id'] = clientData.clienteId;
+        }
+      } catch {
+        // Si no se puede parsear, es un token JWT de admin (ignorar para clientes)
+      }
+    } else {
+      // Fallback al sistema antiguo
+      headers = getAuthHeaders();
+    }
+    
+    const response = await axios.get(`${API_URL}/perfil`, { headers });
     return response.data;
   } catch (error) {
     throw error.response?.data?.error || 'Error al obtener perfil';
@@ -177,14 +194,36 @@ export const obtenerPerfil = async () => {
  */
 export const actualizarPerfil = async (datos) => {
   try {
-    const response = await axios.put(`${API_URL}/perfil`, datos, {
-      headers: getAuthHeaders()
-    });
+    // Intentar obtener token del AuthContext primero (login unificado)
+    const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    let headers = {};
     
-    // Actualizar en localStorage
-    const clienteActual = obtenerClienteActual();
-    const clienteActualizado = { ...clienteActual, ...response.data };
-    guardarCliente(clienteActualizado);
+    if (authToken) {
+      try {
+        const clientData = JSON.parse(authToken);
+        if (clientData.clienteId) {
+          headers['X-Cliente-Id'] = clientData.clienteId;
+        }
+      } catch {
+        // Token inválido o JWT de admin
+      }
+    } else {
+      headers = getAuthHeaders();
+    }
+    
+    const response = await axios.put(`${API_URL}/perfil`, datos, { headers });
+    
+    // Actualizar en localStorage si existe
+    if (authToken) {
+      try {
+        const clientData = JSON.parse(authToken);
+        const clienteActualizado = { ...clientData, ...response.data };
+        const storage = localStorage.getItem('authToken') ? localStorage : sessionStorage;
+        storage.setItem('authToken', JSON.stringify(clienteActualizado));
+      } catch {
+        // No actualizar si es JWT
+      }
+    }
     
     return response.data;
   } catch (error) {
@@ -197,12 +236,28 @@ export const actualizarPerfil = async (datos) => {
  */
 export const cambiarContrasena = async (contrasenaActual, contrasenaNueva) => {
   try {
+    // Intentar obtener token del AuthContext primero (login unificado)
+    const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    let headers = {};
+    
+    if (authToken) {
+      try {
+        const clientData = JSON.parse(authToken);
+        if (clientData.clienteId) {
+          headers['X-Cliente-Id'] = clientData.clienteId;
+        }
+      } catch {
+        // Token inválido
+      }
+    } else {
+      headers = getAuthHeaders();
+    }
+    
     const response = await axios.post(`${API_URL}/cambiar-contrasena`, {
       contrasenaActual,
       contrasenaNueva
-    }, {
-      headers: getAuthHeaders()
-    });
+    }, { headers });
+    
     return response.data;
   } catch (error) {
     throw error.response?.data?.error || 'Error al cambiar contraseña';

@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Form, Alert, Spinner, Badge, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   obtenerPerfil, 
   actualizarPerfil, 
-  cambiarContrasena, 
-  logout, 
-  estaAutenticado,
-  obtenerClienteActual 
+  cambiarContrasena
 } from '../../api/clientAuth';
 import { obtenerMisResenas, eliminarResena } from '../../api/resenas';
 import StarRating from '../../components/product/StarRating';
 
 const ClientProfilePage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user, userRole, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [cliente, setCliente] = useState(null);
   const [resenas, setResenas] = useState([]);
@@ -39,13 +38,19 @@ const ClientProfilePage = () => {
   const [resenaToDelete, setResenaToDelete] = useState(null);
 
   useEffect(() => {
-    if (!estaAutenticado()) {
-      navigate('/cliente/login');
+    // Verificar autenticación y que sea un cliente
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    if (userRole !== 'CLIENTE') {
+      navigate('/');
       return;
     }
 
     cargarDatos();
-  }, [navigate]);
+  }, [isAuthenticated, userRole, navigate]);
 
   const cargarDatos = async () => {
     try {

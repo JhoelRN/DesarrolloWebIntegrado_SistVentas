@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  =====================================================
+  FACES-CONFIG.XML - Configuración JSF
+  =====================================================
+  
+  Archivo de configuración central para JavaServer Faces (JSF)
+  Define Managed Beans, Navigation Rules, Converters, Validators, etc.
+  
+  Ubicación: WEB-INF/faces-config.xml
+-->
+<faces-config 
+    xmlns="https://jakarta.ee/xml/ns/jakartaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee 
+                        https://jakarta.ee/xml/ns/jakartaee/web-facesconfig_3_0.xsd"
+    version="3.0">
+
+    <!-- Nombre de la aplicación -->
+    <application>
+        <application-name>Macrosur E-Commerce</application-name>
+        
+        <!-- Message Bundle para i18n -->
+        <resource-bundle>
+            <base-name>messages</base-name>
+            <var>msg</var>
+        </resource-bundle>
+        
+        <!-- Locale por defecto -->
+        <locale-config>
+            <default-locale>es</default-locale>
+            <supported-locale>es</supported-locale>
+            <supported-locale>en</supported-locale>
+        </locale-config>
+        
+        <!-- ViewHandler personalizado (opcional) -->
+        <!-- <view-handler>com.macrosur.ecommerce.jsf.CustomViewHandler</view-handler> -->
+        
+        <!-- EL Resolver para integración Spring-JSF -->
+        <el-resolver>org.springframework.web.jsf.el.SpringBeanFacesELResolver</el-resolver>
+    </application>
+
+    <!-- ========================================== -->
+    <!--  MANAGED BEANS (JSF Tradicional)          -->
+    <!--  Nota: Con Spring, se usan @Component     -->
+    <!-- ========================================== -->
+    
+    <!-- Ejemplo de Managed Bean tradicional JSF -->
+    <!--
+    <managed-bean>
+        <managed-bean-name>promocionBean</managed-bean-name>
+        <managed-bean-class>com.macrosur.ecommerce.controller.bean.PromocionManagedBean</managed-bean-class>
+        <managed-bean-scope>view</managed-bean-scope>
+    </managed-bean>
+    -->
+
+    <!-- ========================================== -->
+    <!--  NAVIGATION RULES (Reglas de Navegación)  -->
+    <!-- ========================================== -->
+    
+    <!-- Navegación desde login a dashboard -->
+    <navigation-rule>
+        <from-view-id>/login.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>success</from-outcome>
+            <to-view-id>/admin/dashboard.xhtml</to-view-id>
+            <redirect />
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>failure</from-outcome>
+            <to-view-id>/login.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <!-- Navegación de promociones -->
+    <navigation-rule>
+        <from-view-id>/admin/promociones.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>crear</from-outcome>
+            <to-view-id>/admin/promociones-form.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>editar</from-outcome>
+            <to-view-id>/admin/promociones-form.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>lista</from-outcome>
+            <to-view-id>/admin/promociones.xhtml</to-view-id>
+            <redirect />
+        </navigation-case>
+    </navigation-rule>
+
+    <!-- ========================================== -->
+    <!--  CONVERTERS (Convertidores personalizados) -->
+    <!-- ========================================== -->
+    
+    <!-- Converter para BigDecimal (precios) -->
+    <!--
+    <converter>
+        <converter-id>precioConverter</converter-id>
+        <converter-class>com.macrosur.ecommerce.jsf.converter.PrecioConverter</converter-class>
+    </converter>
+    -->
+
+    <!-- ========================================== -->
+    <!--  VALIDATORS (Validadores personalizados)  -->
+    <!-- ========================================== -->
+    
+    <!-- Validator para descuentos -->
+    <!--
+    <validator>
+        <validator-id>descuentoValidator</validator-id>
+        <validator-class>com.macrosur.ecommerce.jsf.validator.DescuentoValidator</validator-class>
+    </validator>
+    -->
+
+    <!-- ========================================== -->
+    <!--  LIFECYCLE (Configuración del ciclo de vida) -->
+    <!-- ========================================== -->
+    
+    <lifecycle>
+        <!-- Phase Listener para logging o seguridad -->
+        <!--
+        <phase-listener>com.macrosur.ecommerce.jsf.listener.SecurityPhaseListener</phase-listener>
+        -->
+    </lifecycle>
+
+    <!-- ========================================== -->
+    <!--  FACTORY CONFIGURATION                     -->
+    <!-- ========================================== -->
+    
+    <factory>
+        <!-- Exception Handler personalizado -->
+        <!--
+        <exception-handler-factory>
+            com.macrosur.ecommerce.jsf.exception.CustomExceptionHandlerFactory
+        </exception-handler-factory>
+        -->
+    </factory>
+
+    <!-- ========================================== -->
+    <!--  RENDER KIT (Personalización de renderizado) -->
+    <!-- ========================================== -->
+    
+    <render-kit>
+        <render-kit-id>HTML_BASIC</render-kit-id>
+        <!-- Renderizadores personalizados aquí -->
+    </render-kit>
+
+</faces-config>

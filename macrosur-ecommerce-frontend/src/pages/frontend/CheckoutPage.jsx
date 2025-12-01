@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-b
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import PromotionSelector from '../../components/promotions/PromotionSelector';
 import axios from 'axios';
 
 const CheckoutPage = () => {
@@ -30,11 +31,27 @@ const CheckoutPage = () => {
         region: ''
     });
 
+    // Estado de promoción
+    const [promocionAplicada, setPromocionAplicada] = useState(null);
+    const [descuentoPromocion, setDescuentoPromocion] = useState(0);
+
     const IVA_RATE = 0.19;
     const subtotal = cartTotal;
     const iva = subtotal * IVA_RATE;
-    const costoEnvio = metodoEntrega === 'DOMICILIO' ? 5000 : 0;
-    const total = subtotal + iva + costoEnvio;
+    
+    // Aplicar descuento de promoción
+    const subtotalConDescuento = subtotal - descuentoPromocion;
+    
+    // Costo de envío (gratis si la promoción es de envío gratis)
+    const esEnvioGratis = promocionAplicada?.tipoDescuento === 'Envio_Gratis';
+    const costoEnvio = metodoEntrega === 'DOMICILIO' && !esEnvioGratis ? 5000 : 0;
+    
+    const total = Math.max(0, subtotalConDescuento + iva + costoEnvio);
+
+    const handlePromocionAplicada = (promocion, descuento) => {
+        setPromocionAplicada(promocion);
+        setDescuentoPromocion(descuento);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -402,6 +419,12 @@ const CheckoutPage = () => {
                     </Col>
 
                     <Col md={4}>
+                        {/* Selector de Promociones */}
+                        <PromotionSelector 
+                            subtotal={subtotal} 
+                            onPromotionApplied={handlePromocionAplicada}
+                        />
+
                         <Card className="sticky-top" style={{top: '20px'}}>
                             <Card.Body>
                                 <h5 className="mb-3">Resumen del Pedido</h5>
@@ -426,6 +449,17 @@ const CheckoutPage = () => {
                                     <span>Subtotal:</span>
                                     <span>${subtotal.toLocaleString('es-CL')}</span>
                                 </div>
+
+                                {/* Mostrar descuento si hay promoción */}
+                                {descuentoPromocion > 0 && (
+                                    <div className="d-flex justify-content-between mb-2 text-success">
+                                        <span>
+                                            <i className="bi bi-gift me-1"></i>
+                                            Descuento ({promocionAplicada?.nombreRegla}):
+                                        </span>
+                                        <span>-${descuentoPromocion.toLocaleString('es-CL')}</span>
+                                    </div>
+                                )}
                                 
                                 <div className="d-flex justify-content-between mb-2">
                                     <span>IVA (19%):</span>
@@ -434,8 +468,13 @@ const CheckoutPage = () => {
 
                                 <div className="d-flex justify-content-between mb-2">
                                     <span>Envío:</span>
-                                    <span>
-                                        {costoEnvio === 0 ? 'Gratis' : `$${costoEnvio.toLocaleString('es-CL')}`}
+                                    <span className={esEnvioGratis ? 'text-success fw-bold' : ''}>
+                                        {costoEnvio === 0 ? (
+                                            <>
+                                                {esEnvioGratis && <i className="bi bi-gift me-1"></i>}
+                                                Gratis
+                                            </>
+                                        ) : `$${costoEnvio.toLocaleString('es-CL')}`}
                                     </span>
                                 </div>
                                 
@@ -447,6 +486,14 @@ const CheckoutPage = () => {
                                         ${total.toLocaleString('es-CL')}
                                     </strong>
                                 </div>
+
+                                {/* Mostrar ahorro total */}
+                                {(descuentoPromocion > 0 || esEnvioGratis) && (
+                                    <Alert variant="success" className="small mb-3">
+                                        <i className="bi bi-check-circle me-2"></i>
+                                        <strong>¡Ahorras ${(descuentoPromocion + (esEnvioGratis ? 5000 : 0)).toLocaleString('es-CL')}!</strong>
+                                    </Alert>
+                                )}
                                 
                                 <Button
                                     variant="success"
