@@ -14,7 +14,6 @@ import AdminLoginPage from '../pages/auth/AdminLoginPage';
 import OAuthCallbackPage from '../pages/auth/OAuthCallbackPage';
 import ClientProfilePage from '../pages/frontend/ClientProfilePage';
 import InfoPage from '../pages/frontend/InfoPage';
-import TrackingPage from '../pages/frontend/TrackingPage';
 import ProfileRouter from './ProfileRouter';
 import AdminRouter from './AdminRouter';
 import LayoutAdmin from '../components/layout/LayoutAdmin'; // Layout con Sidebar
@@ -65,7 +64,6 @@ const AppRouter = () => {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/mis-pedidos" element={<MyOrdersPage />} />
           <Route path="/info/:slug" element={<InfoPage />} /> {/* Contenido_Informativo */}
-          <Route path="/track" element={<TrackingPage />} />
 
           {/* Autenticación */}
           <Route path="/login" element={<LoginClientePage />} />

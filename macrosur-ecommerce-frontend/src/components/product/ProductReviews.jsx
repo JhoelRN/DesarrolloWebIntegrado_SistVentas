@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Alert, Spinner, Pagination, Form, Modal } from 'react-bootstrap';
 import StarRating from '../common/StarRating';
 import * as resenasApi from '../../api/resenas';
-import * as clientAuthApi from '../../api/clientAuth';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * Componente para mostrar y crear reseñas de productos
  */
 const ProductReviews = ({ productoId }) => {
     const navigate = useNavigate();
+    const { isAuthenticated, user, userRole } = useAuth();
     const [resenas, setResenas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [estadisticas, setEstadisticas] = useState({ promedioCalificacion: 0, totalResenas: 0 });
@@ -26,12 +27,12 @@ const ProductReviews = ({ productoId }) => {
     // Permisos
     const [puedeResenar, setPuedeResenar] = useState(false);
     const [motivoNoResenar, setMotivoNoResenar] = useState('');
-    const clienteActual = clientAuthApi.obtenerClienteActual();
+    const esCliente = isAuthenticated && userRole === 'CLIENTE';
 
     useEffect(() => {
         cargarResenas();
         verificarPermisos();
-    }, [productoId, currentPage]);
+    }, [productoId, currentPage, esCliente]);
 
     const cargarResenas = async () => {
         try {
@@ -51,7 +52,7 @@ const ProductReviews = ({ productoId }) => {
     };
 
     const verificarPermisos = async () => {
-        if (!clienteActual) {
+        if (!esCliente) {
             setPuedeResenar(false);
             setMotivoNoResenar('Inicia sesión para reseñar');
             return;
@@ -63,6 +64,7 @@ const ProductReviews = ({ productoId }) => {
             setMotivoNoResenar(result.motivo);
         } catch (err) {
             setPuedeResenar(false);
+            setMotivoNoResenar('Error al verificar permisos');
         }
     };
 
@@ -87,9 +89,9 @@ const ProductReviews = ({ productoId }) => {
     };
 
     const handleAbrirModal = () => {
-        if (!clienteActual) {
+        if (!esCliente) {
             if (window.confirm('Debes iniciar sesión para reseñar. ¿Ir a login?')) {
-                navigate('/cliente/login');
+                navigate('/login');
             }
             return;
         }

@@ -38,6 +38,11 @@ export const AuthProvider = ({ children }) => {
                         try {
                             const clientData = JSON.parse(storedToken);
                             userData = await authApi.getCurrentUser(clientData, false);
+                            
+                            // Guardar clienteId si no existe (compatibilidad)
+                            if (clientData.clienteId && !localStorage.getItem('clienteId')) {
+                                localStorage.setItem('clienteId', clientData.clienteId.toString());
+                            }
                         } catch {
                             // Token inválido
                             clearAuthData();
@@ -98,6 +103,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('userEmail');
         localStorage.removeItem('rememberMe');
         localStorage.removeItem('isAdmin');
+        localStorage.removeItem('clienteId'); // Compatibilidad con API de reseñas
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('authTokenExpiry');
         sessionStorage.removeItem('isAdmin');
@@ -180,6 +186,11 @@ export const AuthProvider = ({ children }) => {
             storage.setItem('isAdmin', isAdmin.toString());
             const expiry = Date.now() + ttl;
             storage.setItem('authTokenExpiry', expiry.toString());
+            
+            // Si es cliente, también guardar clienteId separadamente para compatibilidad con API de reseñas
+            if (!isAdmin && typeof tokenOrData === 'object' && tokenOrData.clienteId) {
+                localStorage.setItem('clienteId', tokenOrData.clienteId.toString());
+            }
             
             // Guardar preferencia de recordar en localStorage
             if (remember) {

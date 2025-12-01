@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Carousel, Row, Col, Card, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom'; // <-- ¡IMPORTACIÓN AÑADIDA!
-// Asumimos que ProductCard es un componente reutilizable
+import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+// Componentes
 import ProductCard from '../../components/product/ProductCard'; 
-// Importamos la API para obtener productos destacados
+import PromotionBanner from '../../components/promotions/PromotionBanner';
+// API
 import * as productsApi from '../../api/products'; 
 
 const HomePage = () => {
@@ -25,24 +26,9 @@ const HomePage = () => {
 
     return (
         <>
-            {/* 1. Carrusel de Promociones (Banner Principal) */}
+            {/* 1. Banner de Promociones Dinámico */}
             <Container fluid className="px-0 mb-5">
-                <Carousel fade>
-                    <Carousel.Item style={{ height: '400px' }}>
-                        <img className="d-block w-100 object-fit-cover" src="https://placehold.co/1920x400/007bff/ffffff?text=OFERTA+30%25+Cortinas+Blackout" alt="Promoción 1" />
-                        <Carousel.Caption className="bg-dark bg-opacity-50 p-3 rounded">
-                            <h3 className="fw-bold">¡Semana de Descuentos en Cortinas!</h3>
-                            <p>Envío Gratis a partir de $150.</p>
-                        </Carousel.Caption>
-                    </Carousel.Item>
-                    <Carousel.Item style={{ height: '400px' }}>
-                           <img className="d-block w-100 object-fit-cover" src="https://placehold.co/1920x400/28a745/ffffff?text=NUEVA+COLECCION+ALFOMBRAS+EUROPEAS" alt="Promoción 2" />
-                         <Carousel.Caption className="bg-dark bg-opacity-50 p-3 rounded">
-                            <h3 className="fw-bold">Alfombras Europeas de Lujo</h3>
-                            <p>¡Stock Consignado Exclusivo!</p>
-                        </Carousel.Caption>
-                    </Carousel.Item>
-                </Carousel>
+                <PromotionBanner />
             </Container>
 
             {/* 2. Beneficios y Servicios */}

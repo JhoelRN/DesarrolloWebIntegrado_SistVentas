@@ -1,0 +1,89 @@
+/* Estilos para PromotionBanner */
+
+.promotion-banner {
+    position: relative;
+    overflow: hidden;
+}
+
+.promotion-slide {
+    transition: transform 0.5s ease-in-out;
+}
+
+/* Sombra de texto para mejor legibilidad */
+.text-shadow {
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+}
+
+/* Animación de pulso para badge de urgencia */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+/* Hover effect para botones */
+.btn-hover-grow {
+    transition: all 0.3s ease;
+}
+
+.btn-hover-grow:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* Animación de entrada para el contenido */
+.promotion-content {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Efecto parallax en la imagen de fondo */
+.promotion-bg-image {
+    animation: zoomIn 10s infinite alternate;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.1);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .promotion-slide {
+        height: 300px !important;
+    }
+    
+    .promotion-content h1 {
+        font-size: 2rem !important;
+    }
+    
+    .promotion-content p {
+        font-size: 1rem !important;
+    }
+    
+    .promotion-content .btn {
+        padding: 0.75rem 1.5rem !important;
+        font-size: 0.9rem;
+    }
+}

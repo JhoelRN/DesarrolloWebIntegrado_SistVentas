@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  =====================================================
+  WEB.XML - Descriptor de Despliegue Web
+  =====================================================
+  
+  Configuración JavaEE tradicional para Servlets, Filters, JSF, etc.
+  Integración Spring Boot + JSF requiere este archivo
+-->
+<web-app 
+    xmlns="https://jakarta.ee/xml/ns/jakartaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee 
+                        https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+    version="5.0">
+
+    <display-name>Macrosur E-Commerce Application</display-name>
+    <description>
+        Aplicación e-commerce híbrida con Spring Boot + JSF + React
+        Demuestra integración de tecnologías modernas y tradicionales
+    </description>
+
+    <!-- ========================================== -->
+    <!--  CONTEXT PARAMETERS                        -->
+    <!-- ========================================== -->
+    
+    <!-- JSF: Project Stage (Development/Production) -->
+    <context-param>
+        <param-name>jakarta.faces.PROJECT_STAGE</param-name>
+        <param-value>Development</param-value>
+        <!-- Cambiar a Production en producción -->
+    </context-param>
+
+    <!-- JSF: State Saving Method (client/server) -->
+    <context-param>
+        <param-name>jakarta.faces.STATE_SAVING_METHOD</param-name>
+        <param-value>server</param-value>
+    </context-param>
+
+    <!-- JSF: Interpret empty string as null -->
+    <context-param>
+        <param-name>jakarta.faces.INTERPRET_EMPTY_STRING_SUBMITTED_VALUES_AS_NULL</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <!-- JSF: Enable partial state saving -->
+    <context-param>
+        <param-name>jakarta.faces.PARTIAL_STATE_SAVING</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <!-- PrimeFaces: Theme -->
+    <context-param>
+        <param-name>primefaces.THEME</param-name>
+        <param-value>saga</param-value>
+        <!-- Opciones: nova-light, nova-dark, saga, vela, arya, etc. -->
+    </context-param>
+
+    <!-- PrimeFaces: Font Awesome -->
+    <context-param>
+        <param-name>primefaces.FONT_AWESOME</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <!-- PrimeFaces: Client Side Validation -->
+    <context-param>
+        <param-name>primefaces.CLIENT_SIDE_VALIDATION</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+    <!-- PrimeFaces: File Upload Mode (auto, native) -->
+    <context-param>
+        <param-name>primefaces.UPLOADER</param-name>
+        <param-value>auto</param-value>
+    </context-param>
+
+    <!-- BootFaces: Usar Bootstrap CSS de BootFaces -->
+    <context-param>
+        <param-name>net.bootsfaces.get_bootstrap_from_cdn</param-name>
+        <param-value>false</param-value>
+    </context-param>
+
+    <!-- OmniFaces: Cache provider -->
+    <context-param>
+        <param-name>org.omnifaces.CACHE_PROVIDER</param-name>
+        <param-value>org.omnifaces.cdi.cache.CacheProvider</param-value>
+    </context-param>
+
+    <!-- ========================================== -->
+    <!--  JSF SERVLET (FacesServlet)                -->
+    <!-- ========================================== -->
+    
+    <servlet>
+        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-class>jakarta.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <enabled>true</enabled>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>/faces/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- ========================================== -->
+    <!--  FILTERS (Filtros HTTP)                    -->
+    <!-- ========================================== -->
+    
+    <!-- Character Encoding Filter -->
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- Spring Security Filter (si se usa) -->
+    <!--
+    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>ERROR</dispatcher>
+    </filter-mapping>
+    -->
+
+    <!-- ========================================== -->
+    <!--  LISTENERS                                 -->
+    <!-- ========================================== -->
+    
+    <!-- Spring Context Loader Listener -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!-- Spring Request Context Listener -->
+    <listener>
+        <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+    </listener>
+
+    <!-- ========================================== -->
+    <!--  SESSION CONFIGURATION                     -->
+    <!-- ========================================== -->
+    
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+            <secure>false</secure>
+            <!-- Cambiar a true en producción con HTTPS -->
+        </cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
+    </session-config>
+
+    <!-- ========================================== -->
+    <!--  WELCOME FILES                             -->
+    <!-- ========================================== -->
+    
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        <welcome-file>index.xhtml</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <!-- ========================================== -->
+    <!--  ERROR PAGES                               -->
+    <!-- ========================================== -->
+    
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error/404.xhtml</location>
+    </error-page>
+
+    <error-page>
+        <error-code>500</error-code>
+        <location>/error/500.xhtml</location>
+    </error-page>
+
+    <error-page>
+        <exception-type>jakarta.faces.application.ViewExpiredException</exception-type>
+        <location>/error/session-expired.xhtml</location>
+    </error-page>
+
+    <!-- ========================================== -->
+    <!--  MIME MAPPINGS                             -->
+    <!-- ========================================== -->
+    
+    <mime-mapping>
+        <extension>xhtml</extension>
+        <mime-type>application/xhtml+xml</mime-type>
+    </mime-mapping>
+
+    <mime-mapping>
+        <extension>woff2</extension>
+        <mime-type>font/woff2</mime-type>
+    </mime-mapping>
+
+    <!-- ========================================== -->
+    <!--  SECURITY CONSTRAINTS (Opcional)           -->
+    <!-- ========================================== -->
+    
+    <!-- Restringir acceso directo a archivos JSF internos -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Restrict WEB-INF</web-resource-name>
+            <url-pattern>/WEB-INF/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint />
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Restrict META-INF</web-resource-name>
+            <url-pattern>/META-INF/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint />
+    </security-constraint>
+
+    <!-- Páginas de administración requieren autenticación -->
+    <!--
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Admin Pages</web-resource-name>
+            <url-pattern>/admin/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>ADMIN</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <login-config>
+        <auth-method>FORM</auth-method>
+        <form-login-config>
+            <form-login-page>/login.xhtml</form-login-page>
+            <form-error-page>/login-error.xhtml</form-error-page>
+        </form-login-config>
+    </login-config>
+    
+    <security-role>
+        <role-name>ADMIN</role-name>
+    </security-role>
+    <security-role>
+        <role-name>CLIENTE</role-name>
+    </security-role>
+    -->
+
+</web-app>
