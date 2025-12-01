@@ -1,9 +1,9 @@
 # Script para reorganizar archivos SQL del proyecto
 # Fecha: 2025-12-01
-# Propósito: Limpiar y organizar carpeta macrosur_ecommerce_DB
+# Proposito: Limpiar y organizar carpeta macrosur_ecommerce_DB
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host " REORGANIZACIÓN DE ARCHIVOS SQL" -ForegroundColor Cyan
+Write-Host " REORGANIZACION DE ARCHIVOS SQL" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -16,7 +16,7 @@ if (-not (Test-Path "$baseDir\extract_schema_simple.ps1")) {
     exit 1
 }
 
-Write-Host "📁 Directorio base: $baseDir" -ForegroundColor Green
+Write-Host "[OK] Directorio base: $baseDir" -ForegroundColor Green
 Write-Host ""
 
 # Función para crear carpeta si no existe
