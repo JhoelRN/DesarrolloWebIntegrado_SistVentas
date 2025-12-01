@@ -50,6 +50,12 @@ const LayoutAdmin = () => {
               <Nav.Link as={Link} to="/admin/customers" className="text-white">
                 <i className="bi bi-people me-2"></i>Clientes
               </Nav.Link>
+              <Nav.Link as={Link} to="/admin/reviews" className="text-white">
+                <i className="bi bi-star me-2"></i>Reseñas
+              </Nav.Link>
+              <Nav.Link as={Link} to="/admin/claims" className="text-white">
+                <i className="bi bi-file-earmark-text me-2"></i>Reclamaciones
+              </Nav.Link>
             </>
           )}
           
@@ -88,23 +94,14 @@ const LayoutAdmin = () => {
             </>
           )}
           
-          {/* Reseñas y Reclamos - ADMIN + GESTOR_COMERCIAL */}
-          {(userRole === 'ADMIN' || userRole === 'GESTOR_COMERCIAL') && (
-            <>
-              <Nav.Link as={Link} to="/admin/reviews" className="text-white">
-                <i className="bi bi-star me-2"></i>Reseñas
-              </Nav.Link>
-              <Nav.Link as={Link} to="/admin/claims" className="text-white">
-                <i className="bi bi-file-earmark-text me-2"></i>Reclamaciones
-              </Nav.Link>
-            </>
-          )}
-          
           {/* Reportes - Todos los gestores */}
           {(userRole === 'ADMIN' || userRole === 'GESTOR_COMERCIAL' || userRole === 'GESTOR_LOGISTICA' || userRole === 'GESTOR_PRODUCTOS') && (
-            <Nav.Link as={Link} to="/admin/reports" className="text-white">
-              <i className="bi bi-graph-up me-2"></i>Reportes
-            </Nav.Link>
+            <>
+              <div className="text-muted small mt-3 mb-1">REPORTES</div>
+              <Nav.Link as={Link} to="/admin/reports" className="text-white">
+                <i className="bi bi-graph-up me-2"></i>Reportes
+              </Nav.Link>
+            </>
           )}
         </Nav>
 

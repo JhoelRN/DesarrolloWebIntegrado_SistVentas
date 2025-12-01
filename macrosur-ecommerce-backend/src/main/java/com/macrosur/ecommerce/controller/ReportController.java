@@ -2,17 +2,21 @@
 package com.macrosur.ecommerce.controller;
 
 import com.macrosur.ecommerce.service.PdfService;
+import com.macrosur.ecommerce.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -21,38 +25,35 @@ public class ReportController {
 
     @Autowired
     private PdfService pdfService;
+
+    @Autowired
+    private ProductoRepository productoRepository;
+
+    @Autowired
+    private PedidoRepository pedidoRepository;
+
+    @Autowired
+    private InventarioRepository inventarioRepository;
+
+    @Autowired
+    private UsuarioAdminRepository usuarioAdminRepository;
+
+    @Autowired
+    private CategoriaRepository categoriaRepository;
     
     private final Logger log = LoggerFactory.getLogger(ReportController.class);
 
     @GetMapping("/productos")
-    @PreAuthorize("hasAuthority('REPORTE_PRODUCTOS') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTOR_PRODUCTOS')")
     public ResponseEntity<byte[]> generateProductReport(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(defaultValue = "PDF") String formato
     ) {
         try {
-            // TODO: Obtener datos reales de ProductoService
-            Map<String, Object> data = new HashMap<>();
-            data.put("reportDate", new Date());
-            data.put("totalProducts", 150);
-            data.put("totalCategories", 8);
-            data.put("generatedBy", "Admin Usuario");
-            data.put("activeProducts", 135);
-            data.put("lowStockProducts", 12);
-            data.put("outOfStockProducts", 3);
-            data.put("totalInventoryValue", 450250.0);
-            
-            // Preparar categorías con productos
-            List<Map<String, Object>> categories = new ArrayList<>();
-            data.put("categories", categories);
-            
-            byte[] out = pdfService.generateProductsReportPdf(data);
-            return buildResponse(out, formato, "catalogo_productos");
-        } catch (ResponseStatusException ex) {
-            log.warn("Permiso/validación falló productos: {}", ex.getMessage());
-            throw ex;
+            // TODO: Implementar generación de reporte con JasperReports
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Reporte de productos pendiente de implementación");
+        } catch (ResponseStatusException rse) {
+            throw rse;
         } catch (Exception ex) {
             log.error("Error generando reporte productos: {}", ex.getMessage(), ex);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generando reporte productos");
@@ -60,29 +61,16 @@ public class ReportController {
     }
 
     @GetMapping("/inventario")
-    @PreAuthorize("hasAuthority('REPORTE_INVENTARIO') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTOR_LOGISTICA')")
     public ResponseEntity<byte[]> generateInventoryReport(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaCorte,
             @RequestParam(required = false) Long almacenId,
             @RequestParam(defaultValue = "PDF") String formato
     ) {
         try {
-            // TODO: Obtener datos reales de InventarioService
-            Map<String, Object> data = new HashMap<>();
-            data.put("reportDate", new Date());
-            data.put("ubicacion", almacenId != null ? "Almacén " + almacenId : "Todos los Almacenes");
-            data.put("totalProducts", 150);
-            data.put("totalUnits", 5420);
-            data.put("lowStockCount", 12);
-            data.put("outOfStockCount", 3);
-            
-            // Preparar items de inventario
-            List<Map<String, Object>> items = new ArrayList<>();
-            // TODO: Cargar items reales desde base de datos
-            data.put("items", items);
-            
-            byte[] out = pdfService.generateInventoryReportPdf(data);
-            return buildResponse(out, formato, "reporte_inventario");
+            // TODO: Implementar generación de reporte con JasperReports
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Reporte de inventario pendiente de implementación");
+        } catch (ResponseStatusException rse) {
+            throw rse;
         } catch (Exception ex) {
             log.error("Error generando reporte inventario: {}", ex.getMessage(), ex);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generando reporte inventario");
@@ -90,41 +78,149 @@ public class ReportController {
     }
 
     @GetMapping("/ventas")
-    @PreAuthorize("hasAuthority('REPORTE_VENTAS') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTOR_COMERCIAL')")
     public ResponseEntity<byte[]> generateSalesReport(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
-            @RequestParam(required = false) String tipoReporte,
             @RequestParam(defaultValue = "PDF") String formato
     ) {
         try {
-            // TODO: Obtener datos reales de VentaService
-            Map<String, Object> data = new HashMap<>();
-            data.put("reportDate", new Date());
-            data.put("periodDescription", "Noviembre 2025");
-            data.put("generatedBy", "Admin Usuario");
-            data.put("startDate", fechaInicio != null ? java.sql.Date.valueOf(fechaInicio) : new Date());
-            data.put("endDate", fechaFin != null ? java.sql.Date.valueOf(fechaFin) : new Date());
-            data.put("totalDays", 28);
-            data.put("totalRevenue", 125450.0);
-            data.put("totalOrders", 342);
-            data.put("averageOrderValue", 367.0);
-            data.put("totalProductsSold", 1245);
-            data.put("revenueGrowth", 15.5);
-            data.put("ordersGrowth", 8.3);
-            
-            // Preparar top productos, métodos de pago, etc.
-            data.put("topProducts", new ArrayList<>());
-            data.put("paymentMethods", new ArrayList<>());
-            data.put("salesByCategory", new ArrayList<>());
-            data.put("dailySales", new ArrayList<>());
-            data.put("maxDailyAmount", 5000.0);
-            
-            byte[] out = pdfService.generateSalesReportPdf(data);
-            return buildResponse(out, formato, "reporte_ventas");
+            // TODO: Implementar generación de reporte con JasperReports
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Reporte de ventas pendiente de implementación");
+        } catch (ResponseStatusException rse) {
+            throw rse;
         } catch (Exception ex) {
             log.error("Error generando reporte ventas: {}", ex.getMessage(), ex);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generando reporte ventas");
+        }
+    }
+
+    @GetMapping("/usuarios")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> generateUsuariosReport(@RequestParam(defaultValue = "PDF") String formato) {
+        try {
+            // TODO: Implementar generación de reporte con JasperReports
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Reporte de usuarios pendiente de implementación");
+        } catch (ResponseStatusException rse) {
+            throw rse;
+        } catch (Exception ex) {
+            log.error("Error generando reporte usuarios: {}", ex.getMessage(), ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error generando reporte usuarios");
+        }
+    }
+
+    @GetMapping("/dashboard/stats")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTOR_PRODUCTOS') or hasRole('GESTOR_COMERCIAL') or hasRole('GESTOR_LOGISTICA')")
+    public ResponseEntity<Map<String, Object>> getDashboardStats(Authentication authentication) {
+        try {
+            log.info("Obteniendo estadísticas del dashboard...");
+            
+            // Obtener el rol del usuario autenticado
+            String rol = "ADMIN";
+            if (authentication != null && authentication.getAuthorities() != null) {
+                rol = authentication.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .filter(auth -> auth.startsWith("ROLE_"))
+                        .map(auth -> auth.replace("ROLE_", ""))
+                        .findFirst()
+                        .orElse("ADMIN");
+            }
+            
+            log.info("Rol del usuario: {}", rol);
+
+            Map<String, Object> stats = new HashMap<>();
+            
+            // Stats básicos según rol con manejo de errores individual
+            try {
+                switch (rol) {
+                    case "ADMIN":
+                        stats.put("totalProductos", productoRepository.count());
+                        stats.put("totalPedidos", pedidoRepository.count());
+                        stats.put("totalUsuarios", usuarioAdminRepository.count());
+                        stats.put("totalCategorias", categoriaRepository.count());
+                        break;
+                    case "GESTOR_PRODUCTOS":
+                        stats.put("totalProductos", productoRepository.count());
+                        stats.put("totalCategorias", categoriaRepository.count());
+                        stats.put("productosActivos", productoRepository.count());
+                        stats.put("totalInventario", inventarioRepository.count());
+                        break;
+                    case "GESTOR_COMERCIAL":
+                        stats.put("totalPedidos", pedidoRepository.count());
+                        stats.put("pedidosHoy", 0);
+                        stats.put("ventasMes", 0.0);
+                        stats.put("ticketPromedio", 0.0);
+                        break;
+                    case "GESTOR_LOGISTICA":
+                        stats.put("totalInventario", inventarioRepository.count());
+                        stats.put("alarmasStock", 0);
+                        stats.put("ordenesReposicion", 0);
+                        stats.put("despachosHoy", 0);
+                        break;
+                    default:
+                        log.warn("Rol no reconocido: {}", rol);
+                        stats.put("totalProductos", productoRepository.count());
+                        stats.put("totalPedidos", pedidoRepository.count());
+                        stats.put("mensaje", "Rol no reconocido - mostrando datos básicos");
+                }
+            } catch (Exception dbEx) {
+                log.error("Error accediendo a la base de datos: {}", dbEx.getMessage(), dbEx);
+                // Devolver estadísticas vacías en caso de error de BD
+                stats.put("totalProductos", 0);
+                stats.put("totalPedidos", 0);
+                stats.put("totalUsuarios", 0);
+                stats.put("totalCategorias", 0);
+                stats.put("error", "Error obteniendo datos de la base de datos");
+            }
+            
+            log.info("Estadísticas obtenidas exitosamente: {}", stats);
+            return ResponseEntity.ok(stats);
+        } catch (Exception ex) {
+            log.error("Error general obteniendo estadísticas dashboard: {}", ex.getMessage(), ex);
+            // En lugar de lanzar excepción, devolver respuesta con error
+            Map<String, Object> errorStats = new HashMap<>();
+            errorStats.put("totalProductos", 0);
+            errorStats.put("totalPedidos", 0);
+            errorStats.put("error", "Error obteniendo estadísticas: " + ex.getMessage());
+            return ResponseEntity.ok(errorStats);
+        }
+    }
+
+    @GetMapping("/dashboard/charts/ventas-mes")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTOR_COMERCIAL')")
+    public ResponseEntity<List<Map<String, Object>>> getVentasMesChart() {
+        try {
+            // Datos para gráfica de ventas del mes (últimos 30 días)
+            List<Map<String, Object>> ventasDiarias = new ArrayList<>();
+            LocalDate hoy = LocalDate.now();
+            
+            for (int i = 29; i >= 0; i--) {
+                LocalDate fecha = hoy.minusDays(i);
+                Map<String, Object> dia = new HashMap<>();
+                dia.put("fecha", fecha.toString());
+                dia.put("dia", fecha.getDayOfMonth());
+                // TODO: Calcular ventas reales del día
+                dia.put("ventas", Math.random() * 10000); // Placeholder
+                ventasDiarias.add(dia);
+            }
+            
+            return ResponseEntity.ok(ventasDiarias);
+        } catch (Exception ex) {
+            log.error("Error obteniendo gráfica ventas mes: {}", ex.getMessage(), ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error obteniendo datos gráfica");
+        }
+    }
+
+    @GetMapping("/dashboard/charts/productos-categoria")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GESTOR_PRODUCTOS')")
+    public ResponseEntity<List<Map<String, Object>>> getProductosPorCategoria() {
+        try {
+            List<Map<String, Object>> datos = new ArrayList<>();
+            // TODO: Consultar datos reales de la BD
+            return ResponseEntity.ok(datos);
+        } catch (Exception ex) {
+            log.error("Error obteniendo gráfica productos/categoría: {}", ex.getMessage(), ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error obteniendo datos gráfica");
         }
     }
 

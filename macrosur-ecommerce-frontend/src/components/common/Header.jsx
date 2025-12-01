@@ -43,10 +43,10 @@ const Header = () => {
             <div className="bg-light border-bottom py-1 small">
                 <Container className="d-flex justify-content-end">
                     <Nav>
-                        <Nav.Link as={Link} to="/info/soporte" className="text-secondary me-3">
+                        <Nav.Link as={Link} to="/ayuda" className="text-secondary me-3">
                             <i className="bi bi-headset me-1"></i> Ayuda al Cliente
                         </Nav.Link>
-                        <Nav.Link as={Link} to="/track" className="text-secondary">
+                        <Nav.Link as={Link} to="/seguimiento" className="text-secondary">
                             <i className="bi bi-geo-alt-fill me-1"></i> Rastrea tu Pedido
                         </Nav.Link>
                     </Nav>
