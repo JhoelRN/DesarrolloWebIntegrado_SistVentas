@@ -1,188 +1,281 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Row, Col, Button, Form, Card } from 'react-bootstrap';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, Spinner, Pagination, InputGroup } from 'react-bootstrap';
+import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../components/product/ProductCard';
 import * as productsApi from '../../api/products';
+import * as categoriasApi from '../../api/categorias';
 
-const CatalogoPage = () => {
-  const location = useLocation();
+const CatalogPage = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    
+    // Filtros
+    const [currentPage, setCurrentPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [precioMin, setPrecioMin] = useState('');
+    const [precioMax, setPrecioMax] = useState('');
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+    // Cargar categorías al montar el componente
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await categoriasApi.getCategorias({ activo: true });
+                setCategories(data.content || []);
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
-  const [sort, setSort] = useState('');
-  const [brandFilters, setBrandFilters] = useState([]);
-  const [availableBrands, setAvailableBrands] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const PAGE_SIZE = 12;
+    // Leer parámetros de la URL al montar
+    useEffect(() => {
+        const searchFromUrl = searchParams.get('search') || '';
+        const categoriaFromUrl = searchParams.get('categoria') || '';
+        
+        if (searchFromUrl) setSearchTerm(searchFromUrl);
+        if (categoriaFromUrl) setSelectedCategory(categoriaFromUrl);
+    }, [searchParams]);
 
-  // Leer parámetros de la URL
-  const { query, category, tag } = useMemo(() => {
-    const params = new URLSearchParams(location.search);
-    return {
-      query: params.get('q') || '',
-      category: params.get('c') || '',
-      tag: params.get('tag') || '',
-    };
-  }, [location.search]);
+    // Cargar productos cuando cambien los filtros
+    useEffect(() => {
+        loadProducts();
+    }, [currentPage, searchTerm, selectedCategory, precioMin, precioMax]);
 
-  // Título dinámico
-  const pageTitle = useMemo(() => {
-    const map = {
-      alfombras: 'Catálogo de Alfombras',
-      cortinas: 'Catálogo de Cortinas',
-      accesorios: 'Catálogo de Accesorios',
-    };
-    return map[category] || 'Catálogo de Productos';
-  }, [category]);
-
-  // Cargar productos
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
+    const loadProducts = async () => {
         setLoading(true);
-        const data = await productsApi.getProducts({ query, category, tag });
+        try {
+            const filters = {
+                page: currentPage,
+                size: 20,
+                search: searchTerm,
+                categoriaId: selectedCategory || null,
+                precioMin: precioMin ? parseFloat(precioMin) : null,
+                precioMax: precioMax ? parseFloat(precioMax) : null,
+                activo: true
+            };
 
-        // --- MOCK ACTUAL (array plano con category) ---
-        if (Array.isArray(data)) {
-          setProducts(data);
-          setTotalPages(1); // con mocks no hay paginación real
-          setAvailableBrands(
-            category === 'accesorios'
-              ? []
-              : Array.from(new Set(data.map(p => p.brand).filter(Boolean)))
-          );
+            const response = await productsApi.getProducts(filters);
+            setProducts(response.content);
+            setTotalPages(response.totalPages);
+            setTotalElements(response.totalElements);
+        } catch (error) {
+            console.error('Error al cargar productos:', error);
+            setProducts([]);
+        } finally {
+            setLoading(false);
         }
-
-        // --- IMPLEMENTACIÓN REAL (cuando backend esté listo) ---
-        else if (data && data.items) {
-          setProducts(data.items);
-          setTotalPages(data.totalPages || 1);
-          setAvailableBrands(data.brands || []);
-        }
-
-        setBrandFilters([]);
-        setPage(1);
-      } catch (error) {
-        console.error('Error cargando productos:', error);
-        setProducts([]);
-        setAvailableBrands([]);
-      } finally {
-        setLoading(false);
-      }
     };
-    fetchProducts();
-  }, [query, category, tag]);
 
-  // Filtros y orden
-  const filteredAndSorted = useMemo(() => {
-    let list = [...products];
-    if (availableBrands.length > 0 && brandFilters.length > 0) {
-      list = list.filter(p => brandFilters.includes(p.brand));
-    }
-    if (sort === 'price-asc') list.sort((a, b) => (a.price || 0) - (b.price || 0));
-    if (sort === 'price-desc') list.sort((a, b) => (b.price || 0) - (a.price || 0));
-    return list;
-  }, [products, brandFilters, availableBrands, sort]);
+    const handleSearch = (e) => {
+        e.preventDefault();
+        setCurrentPage(0); // Reset a la primera página
+        loadProducts();
+    };
 
-  // Paginación local (para mocks)
-  const pagedProducts = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filteredAndSorted.slice(start, start + PAGE_SIZE);
-  }, [filteredAndSorted, page]);
+    const handleClearFilters = () => {
+        setSearchTerm('');
+        setSelectedCategory('');
+        setPrecioMin('');
+        setPrecioMax('');
+        setCurrentPage(0);
+    };
 
-  const handleSortChange = (e) => setSort(e.target.value);
-  const toggleBrand = (brand) => {
-    setBrandFilters(prev =>
-      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
-    );
-    setPage(1);
-  };
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
 
-  return (
-    <Container className="my-5">
-      <h1 className="fw-bold mb-4">{pageTitle}</h1>
-      <Row>
-        {/* Panel de filtros */}
-        <Col md={3}>
-          <Card className="shadow-sm mb-4">
-            <Card.Body>
-              <h5 className="fw-bold mb-4">Filtros</h5>
+        const items = [];
+        const maxPagesToShow = 5;
+        let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
 
-              {/* Orden */}
-              <div className="mb-4">
-                <Form.Label className="small text-muted">Ordenar por</Form.Label>
-                <Form.Select value={sort} onChange={handleSortChange}>
-                  <option value="">Seleccione</option>
-                  <option value="price-asc">Precio: Menor a Mayor</option>
-                  <option value="price-desc">Precio: Mayor a Menor</option>
-                </Form.Select>
-              </div>
+        if (endPage - startPage < maxPagesToShow - 1) {
+            startPage = Math.max(0, endPage - maxPagesToShow + 1);
+        }
 
-              {/* Marcas */}
-              {availableBrands.length > 0 && (
-                <div className="mb-4">
-                  <Form.Label className="small text-muted">Marcas</Form.Label>
-                  <div className="border rounded p-2">
-                    {availableBrands.map((brand) => (
-                      <Form.Check
-                        key={brand}
-                        type="checkbox"
-                        label={brand}
-                        checked={brandFilters.includes(brand)}
-                        onChange={() => toggleBrand(brand)}
-                        className="mb-2"
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
+        // Primera página
+        if (startPage > 0) {
+            items.push(
+                <Pagination.First key="first" onClick={() => setCurrentPage(0)} />
+            );
+        }
 
-        {/* Catálogo */}
-        <Col md={9}>
-          <Row className="g-4">
-            {loading && (
-              <div className="text-center text-muted py-5 w-100">
-                <i className="bi bi-arrow-repeat fs-2"></i>
-                <p>Cargando productos...</p>
-              </div>
-            )}
-            {!loading && pagedProducts.map(product => (
-              <Col key={product.id} lg={3}>
-                <ProductCard product={product} />
-              </Col>
-            ))}
-            {!loading && pagedProducts.length === 0 && (
-              <div className="text-center text-muted py-5 w-100">
-                <i className="bi bi-box-seam fs-2"></i>
-                <p>No se encontraron productos.</p>
-              </div>
-            )}
-          </Row>
+        // Página anterior
+        if (currentPage > 0) {
+            items.push(
+                <Pagination.Prev key="prev" onClick={() => setCurrentPage(currentPage - 1)} />
+            );
+        }
 
-          {/* Paginación */}
-          {!loading && totalPages > 1 && (
-            <div className="d-flex justify-content-center mt-4">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Button
-                  key={i}
-                  variant={i + 1 === page ? 'primary' : 'outline-primary'}
-                  className="mx-1"
-                  onClick={() => setPage(i + 1)}
+        // Páginas numeradas
+        for (let page = startPage; page <= endPage; page++) {
+            items.push(
+                <Pagination.Item
+                    key={page}
+                    active={page === currentPage}
+                    onClick={() => setCurrentPage(page)}
                 >
-                  {i + 1}
-                </Button>
-              ))}
-            </div>
-          )}
-        </Col>
-      </Row>
-    </Container>
-  );
+                    {page + 1}
+                </Pagination.Item>
+            );
+        }
+
+        // Página siguiente
+        if (currentPage < totalPages - 1) {
+            items.push(
+                <Pagination.Next key="next" onClick={() => setCurrentPage(currentPage + 1)} />
+            );
+        }
+
+        // Última página
+        if (endPage < totalPages - 1) {
+            items.push(
+                <Pagination.Last key="last" onClick={() => setCurrentPage(totalPages - 1)} />
+            );
+        }
+
+        return <Pagination className="justify-content-center mt-4">{items}</Pagination>;
+    };
+
+    return (
+        <Container className="my-5">
+            <h1 className="mb-4 fw-bold">Catálogo de Productos</h1>
+
+            <Row>
+                {/* Panel de Filtros */}
+                <Col md={3} className="mb-4">
+                    <div className="bg-light p-3 rounded shadow-sm sticky-top" style={{ top: '20px' }}>
+                        <h5 className="mb-3 fw-semibold">Filtros</h5>
+
+                        {/* Búsqueda */}
+                        <Form onSubmit={handleSearch} className="mb-3">
+                            <Form.Group>
+                                <Form.Label>Buscar</Form.Label>
+                                <InputGroup>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Nombre o código..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                    <Button variant="primary" type="submit">
+                                        <i className="bi bi-search"></i>
+                                    </Button>
+                                </InputGroup>
+                            </Form.Group>
+                        </Form>
+
+                        {/* Categoría */}
+                        <Form.Group className="mb-3">
+                            <Form.Label>Categoría</Form.Label>
+                            <Form.Select
+                                value={selectedCategory}
+                                onChange={(e) => {
+                                    setSelectedCategory(e.target.value);
+                                    setCurrentPage(0);
+                                }}
+                            >
+                                <option value="">Todas las categorías</option>
+                                {categories.map((cat) => (
+                                    <option key={cat.categoriaId} value={cat.categoriaId}>
+                                        {cat.nombre}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+
+                        {/* Rango de Precio */}
+                        <Form.Group className="mb-3">
+                            <Form.Label>Precio Mínimo</Form.Label>
+                            <Form.Control
+                                type="number"
+                                step="0.01"
+                                placeholder="$0.00"
+                                value={precioMin}
+                                onChange={(e) => {
+                                    setPrecioMin(e.target.value);
+                                    setCurrentPage(0);
+                                }}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Precio Máximo</Form.Label>
+                            <Form.Control
+                                type="number"
+                                step="0.01"
+                                placeholder="$999.99"
+                                value={precioMax}
+                                onChange={(e) => {
+                                    setPrecioMax(e.target.value);
+                                    setCurrentPage(0);
+                                }}
+                            />
+                        </Form.Group>
+
+                        <Button
+                            variant="outline-secondary"
+                            className="w-100"
+                            onClick={handleClearFilters}
+                        >
+                            <i className="bi bi-x-circle me-2"></i>
+                            Limpiar Filtros
+                        </Button>
+                    </div>
+                </Col>
+
+                {/* Listado de Productos */}
+                <Col md={9}>
+                    {/* Información de resultados */}
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <p className="text-muted mb-0">
+                            {loading ? (
+                                'Cargando...'
+                            ) : (
+                                `Mostrando ${products.length} de ${totalElements} productos`
+                            )}
+                        </p>
+                    </div>
+
+                    {/* Grid de Productos */}
+                    {loading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" />
+                            <p className="mt-3 text-muted">Cargando productos...</p>
+                        </div>
+                    ) : products.length === 0 ? (
+                        <div className="text-center py-5">
+                            <i className="bi bi-inbox fs-1 text-muted"></i>
+                            <p className="mt-3 text-muted">
+                                No se encontraron productos con los filtros seleccionados.
+                            </p>
+                            <Button variant="primary" onClick={handleClearFilters}>
+                                Ver todos los productos
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <Row>
+                                {products.map((product) => (
+                                    <Col key={product.id} sm={6} lg={4} xl={3} className="mb-4">
+                                        <ProductCard product={product} />
+                                    </Col>
+                                ))}
+                            </Row>
+
+                            {/* Paginación */}
+                            {renderPagination()}
+                        </>
+                    )}
+                </Col>
+            </Row>
+        </Container>
+    );
 };
 
 export default CatalogoPage;

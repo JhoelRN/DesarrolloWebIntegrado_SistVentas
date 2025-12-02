@@ -3,7 +3,7 @@ package com.macrosur.ecommerce.controller;
 import com.macrosur.ecommerce.entity.UsuarioAdmin;
 import com.macrosur.ecommerce.repository.UsuarioAdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class UsuarioController {
     private UsuarioAdminRepository repo;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping
     public List<UsuarioAdmin> all(){ return repo.findAll(); }
@@ -26,7 +26,7 @@ public class UsuarioController {
 
     @PostMapping
     public UsuarioAdmin create(@RequestBody UsuarioAdmin u){
-        u.setContrasenaHash(passwordEncoder.encode(u.getContrasenaHash()));
+        u.setContrasena_hash(passwordEncoder.encode(u.getContrasena_hash()));
         return repo.save(u);
     }
 
@@ -35,9 +35,12 @@ public class UsuarioController {
         return repo.findById(id).map(existing -> {
             existing.setNombre(u.getNombre());
             existing.setApellido(u.getApellido());
-            existing.setRolId(u.getRolId());
-            if (u.getContrasenaHash() != null && !u.getContrasenaHash().isBlank()) {
-                existing.setContrasenaHash(passwordEncoder.encode(u.getContrasenaHash()));
+            // CORRECCIÓN: No existe setRolId, usar setRole
+            if (u.getRole() != null) {
+                existing.setRole(u.getRole());
+            }
+            if (u.getContrasena_hash() != null && !u.getContrasena_hash().isBlank()) {
+                existing.setContrasena_hash(passwordEncoder.encode(u.getContrasena_hash()));
             }
             existing.setActivo(u.getActivo());
             return repo.save(existing);

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="inventario_report" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="50" bottomMargin="50">
+    <field name="producto" class="java.lang.String"/>
+    <field name="stock_actual" class="java.lang.Long"/>
+    <field name="stock_minimo" class="java.lang.Long"/>
+    <field name="ubicacion" class="java.lang.String"/>
+    <title><band height="30"><staticText><reportElement x="0" y="0" width="515" height="30"/><text><![CDATA[Reporte de Inventario]]></text></staticText></band></title>
+    <columnHeader><band height="20">
+        <staticText><reportElement x="0" y="0" width="250" height="20"/><text><![CDATA[Producto]]></text></staticText>
+        <staticText><reportElement x="250" y="0" width="80" height="20"/><text><![CDATA[Stock]]></text></staticText>
+        <staticText><reportElement x="330" y="0" width="90" height="20"/><text><![CDATA[Stock Mín]]></text></staticText>
+        <staticText><reportElement x="420" y="0" width="95" height="20"/><text><![CDATA[Ubicación]]></text></staticText>
+    </band></columnHeader>
+    <detail><band height="20">
+        <textField><reportElement x="0" y="0" width="250" height="20"/><textFieldExpression><![CDATA[$F{producto}]]></textFieldExpression></textField>
+        <textField><reportElement x="250" y="0" width="80" height="20"/><textFieldExpression><![CDATA[$F{stock_actual}]]></textFieldExpression></textField>
+        <textField><reportElement x="330" y="0" width="90" height="20"/><textFieldExpression><![CDATA[$F{stock_minimo}]]></textFieldExpression></textField>
+        <textField><reportElement x="420" y="0" width="95" height="20"/><textFieldExpression><![CDATA[$F{ubicacion}]]></textFieldExpression></textField>
+    </band></detail>
+</jasperReport>

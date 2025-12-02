@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="jakarta.faces.facelets">
+
+<!--
+  =====================================================
+  VISTA JSF PARA GESTIÓN DE PROMOCIONES
+  =====================================================
+  
+  TECNOLOGÍAS:
+  - JSF (JavaServer Faces) - Framework MVC
+  - Facelets (XHTML) - Motor de plantillas
+  - PrimeFaces / BootFaces - Componentes UI
+  - Ajax JSF - Actualización parcial de página
+  
+  PATRÓN MVC:
+  - View: Este archivo XHTML (promociones.xhtml)
+  - Controller: PromocionManagedBean.java
+  - Model: ReglaDescuento.java (Entity JPA)
+  
+  INTEGRACIÓN HÍBRIDA:
+  Este archivo puede coexistir con React. Se accede via:
+  - React: http://localhost:5173/admin/promotions
+  - JSF: http://localhost:8081/promociones.xhtml
+-->
+
+<h:head>
+    <title>Gestión de Promociones - JSF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    
+    <!-- BootFaces CSS -->
+    <h:outputStylesheet library="css" name="bootfaces.min.css"/>
+    
+    <style>
+        .estadistica-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .badge-activa { background-color: #28a745; }
+        .badge-programada { background-color: #17a2b8; }
+        .badge-expirada { background-color: #6c757d; }
+    </style>
+</h:head>
+
+<h:body>
+    <h:form id="formPrincipal">
+        
+        <!-- MESSAGES (Alertas de éxito/error) -->
+        <p:messages id="messages" showDetail="true" closable="true">
+            <p:autoUpdate />
+        </p:messages>
+        
+        <!-- ========== HEADER ========== -->
+        <div class="container-fluid py-4">
+            <div class="row mb-4">
+                <div class="col">
+                    <h2>
+                        <i class="fa fa-percent"></i>
+                        Gestión de Promociones
+                    </h2>
+                    <p class="text-muted">
+                        Administración de descuentos y campañas (Vista JSF/Facelets)
+                    </p>
+                </div>
+                <div class="col-auto">
+                    <!-- Botón Ajax para abrir diálogo -->
+                    <p:commandButton 
+                        value="Nueva Promoción" 
+                        icon="pi pi-plus"
+                        styleClass="btn btn-primary"
+                        action="#{promocionBean.abrirDialogoNuevo}"
+                        update=":formPrincipal:dialogoPromocion"
+                        oncomplete="PF('dialogPromocion').show()"
+                        process="@this"/>
+                </div>
+            </div>
+            
+            <!-- ========== ESTADÍSTICAS ========== -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="estadistica-card bg-primary text-white">
+                        <h6>Total Promociones</h6>
+                        <h2>#{promocionBean.estadisticas.totalPromociones()}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="estadistica-card bg-success text-white">
+                        <h6>Activas</h6>
+                        <h2>#{promocionBean.estadisticas.promocionesActivas()}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="estadistica-card bg-secondary text-white">
+                        <h6>Inactivas</h6>
+                        <h2>#{promocionBean.estadisticas.promocionesInactivas()}</h2>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="estadistica-card bg-warning text-white">
+                        <h6>Próximas a Expirar</h6>
+                        <h2>#{promocionBean.estadisticas.proximasExpirar()}</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== FILTROS ========== -->
+            <p:panel header="Filtros de Búsqueda" styleClass="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <p:inputText 
+                            id="filtroNombre"
+                            value="#{promocionBean.filtroNombre}"
+                            placeholder="Buscar por nombre..."
+                            styleClass="form-control">
+                            <!-- Ajax en keyup para búsqueda en tiempo real -->
+                            <p:ajax 
+                                event="keyup" 
+                                listener="#{promocionBean.buscarPorNombre}"
+                                update=":formPrincipal:tablaPromociones"
+                                delay="500"/>
+                        </p:inputText>
+                    </div>
+                    <div class="col-md-4">
+                        <p:selectOneMenu 
+                            id="filtroTipo"
+                            value="#{promocionBean.filtroTipo}"
+                            styleClass="form-select">
+                            <f:selectItem itemLabel="Todos los tipos" itemValue=""/>
+                            <f:selectItem itemLabel="Descuento Porcentual" itemValue="Porcentaje"/>
+                            <f:selectItem itemLabel="Monto Fijo" itemValue="Monto Fijo"/>
+                            <f:selectItem itemLabel="2x1" itemValue="2x1"/>
+                            <f:selectItem itemLabel="Envío Gratis" itemValue="Envio Gratis"/>
+                            <!-- Ajax onChange -->
+                            <p:ajax 
+                                event="change"
+                                listener="#{promocionBean.filtrarPorTipo}"
+                                update=":formPrincipal:tablaPromociones"/>
+                        </p:selectOneMenu>
+                    </div>
+                    <div class="col-md-4">
+                        <p:selectBooleanCheckbox 
+                            id="soloActivas"
+                            value="#{promocionBean.filtroSoloActivas}">
+                            <p:ajax 
+                                event="change"
+                                listener="#{promocionBean.cargarPromociones}"
+                                update=":formPrincipal:tablaPromociones"/>
+                        </p:selectBooleanCheckbox>
+                        <h:outputLabel for="soloActivas" value=" Mostrar solo activas"/>
+                    </div>
+                </div>
+            </p:panel>
+            
+            <!-- ========== DATA TABLE (Tabla de Promociones) ========== -->
+            <p:dataTable 
+                id="tablaPromociones"
+                value="#{promocionBean.promociones}"
+                var="promo"
+                paginator="true"
+                rows="10"
+                paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                rowsPerPageTemplate="5,10,15,20"
+                emptyMessage="No se encontraron promociones"
+                styleClass="table table-hover">
+                
+                <p:column headerText="ID" sortBy="#{promo.reglaId}">
+                    <h:outputText value="#{promo.reglaId}"/>
+                </p:column>
+                
+                <p:column headerText="Nombre" sortBy="#{promo.nombreRegla}" filterBy="#{promo.nombreRegla}">
+                    <h:outputText value="#{promo.nombreRegla}" style="font-weight: bold;"/>
+                </p:column>
+                
+                <p:column headerText="Tipo">
+                    <span class="badge bg-info">#{promo.tipoDescuento}</span>
+                </p:column>
+                
+                <p:column headerText="Valor">
+                    <h:outputText 
+                        value="#{promo.valorDescuento}%"
+                        rendered="#{promo.tipoDescuento == 'Porcentaje'}"/>
+                    <h:outputText 
+                        value="$#{promo.valorDescuento}"
+                        rendered="#{promo.tipoDescuento == 'Monto Fijo'}">
+                        <f:convertNumber type="currency" currencySymbol="$" />
+                    </h:outputText>
+                    <h:outputText 
+                        value="#{promo.tipoDescuento}"
+                        rendered="#{promo.tipoDescuento != 'Porcentaje' and promo.tipoDescuento != 'Monto Fijo'}"/>
+                </p:column>
+                
+                <p:column headerText="Estado">
+                    <span class="badge #{promocionBean.getEstadoClass(promo)}">
+                        #{promo.estadoTexto}
+                    </span>
+                </p:column>
+                
+                <p:column headerText="Vigencia">
+                    <h:outputText value="Inicio: #{promo.fechaInicio}" rendered="#{promo.fechaInicio != null}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
+                    </h:outputText>
+                    <br/>
+                    <h:outputText value="Fin: #{promo.fechaFin}" rendered="#{promo.fechaFin != null}">
+                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
+                    </h:outputText>
+                    <br/>
+                    <span class="text-warning" style="font-size: 0.85em;">
+                        <h:outputText value="#{promo.diasRestantes} días restantes" 
+                                      rendered="#{promo.diasRestantes != null and promo.diasRestantes > 0}"/>
+                    </span>
+                </p:column>
+                
+                <p:column headerText="Acciones" style="text-align: center;">
+                    <!-- Botón Editar (Ajax) -->
+                    <p:commandButton 
+                        icon="pi pi-pencil"
+                        styleClass="btn btn-sm btn-outline-primary me-1"
+                        action="#{promocionBean.prepararEdicion(promo)}"
+                        update=":formPrincipal:dialogoPromocion"
+                        oncomplete="PF('dialogPromocion').show()"
+                        title="Editar">
+                        <f:setPropertyActionListener 
+                            target="#{promocionBean.promocionSeleccionada}" 
+                            value="#{promo}"/>
+                    </p:commandButton>
+                    
+                    <!-- Botón Eliminar (Ajax con confirmación) -->
+                    <p:commandButton 
+                        icon="pi pi-trash"
+                        styleClass="btn btn-sm btn-outline-danger"
+                        action="#{promocionBean.eliminarPromocion(promo)}"
+                        update=":formPrincipal:tablaPromociones,:formPrincipal:messages"
+                        title="Eliminar">
+                        <p:confirm 
+                            header="Confirmar eliminación" 
+                            message="¿Está seguro de eliminar esta promoción?"
+                            icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+        </div>
+        
+        <!-- ========== DIÁLOGO CREAR/EDITAR (Modal) ========== -->
+        <p:dialog 
+            id="dialogoPromocion"
+            widgetVar="dialogPromocion"
+            modal="true"
+            header="#{promocionBean.modoEdicion ? 'Editar Promoción' : 'Nueva Promoción'}"
+            width="800"
+            closeOnEscape="true">
+            
+            <p:panelGrid columns="2" styleClass="ui-panelgrid-blank">
+                
+                <p:outputLabel for="nombreRegla" value="Nombre *:"/>
+                <p:inputText 
+                    id="nombreRegla"
+                    value="#{promocionBean.modoEdicion ? promocionBean.promocionSeleccionada.nombreRegla : promocionBean.nuevaPromocion.nombreRegla}"
+                    required="true"
+                    requiredMessage="El nombre es obligatorio"
+                    styleClass="form-control"
+                    style="width: 100%;"/>
+                
+                <p:outputLabel for="tipoDescuento" value="Tipo *:"/>
+                <p:selectOneMenu 
+                    id="tipoDescuento"
+                    value="#{promocionBean.modoEdicion ? promocionBean.promocionSeleccionada.tipoDescuento : promocionBean.nuevaPromocion.tipoDescuento}"
+                    styleClass="form-select">
+                    <f:selectItems value="#{promocionBean.tiposDescuento}"/>
+                </p:selectOneMenu>
+                
+                <p:outputLabel for="valorDescuento" value="Valor *:"/>
+                <p:inputNumber 
+                    id="valorDescuento"
+                    value="#{promocionBean.modoEdicion ? promocionBean.promocionSeleccionada.valorDescuento : promocionBean.nuevaPromocion.valorDescuento}"
+                    decimalPlaces="2"
+                    minValue="0.01"
+                    required="true"
+                    styleClass="form-control"/>
+                
+                <p:outputLabel for="fechaInicio" value="Fecha Inicio:"/>
+                <p:calendar 
+                    id="fechaInicio"
+                    value="#{promocionBean.modoEdicion ? promocionBean.promocionSeleccionada.fechaInicio : promocionBean.nuevaPromocion.fechaInicio}"
+                    pattern="dd/MM/yyyy HH:mm"
+                    showTime="true"
+                    locale="es"/>
+                
+                <p:outputLabel for="fechaFin" value="Fecha Fin:"/>
+                <p:calendar 
+                    id="fechaFin"
+                    value="#{promocionBean.modoEdicion ? promocionBean.promocionSeleccionada.fechaFin : promocionBean.nuevaPromocion.fechaFin}"
+                    pattern="dd/MM/yyyy HH:mm"
+                    showTime="true"
+                    locale="es"/>
+                
+                <p:outputLabel for="acumulable" value="Acumulable:"/>
+                <p:selectBooleanCheckbox 
+                    id="acumulable"
+                    value="#{promocionBean.modoEdicion ? promocionBean.promocionSeleccionada.acumulable : promocionBean.nuevaPromocion.acumulable}"/>
+                
+                <p:outputLabel for="exclusivo" value="Exclusivo:"/>
+                <p:selectBooleanCheckbox 
+                    id="exclusivo"
+                    value="#{promocionBean.modoEdicion ? promocionBean.promocionSeleccionada.exclusivo : promocionBean.nuevaPromocion.exclusivo}"/>
+            </p:panelGrid>
+            
+            <f:facet name="footer">
+                <p:commandButton 
+                    value="Cancelar"
+                    icon="pi pi-times"
+                    styleClass="btn btn-secondary"
+                    onclick="PF('dialogPromocion').hide()"
+                    type="button"/>
+                    
+                <p:commandButton 
+                    value="#{promocionBean.modoEdicion ? 'Actualizar' : 'Crear'}"
+                    icon="pi pi-save"
+                    styleClass="btn btn-primary"
+                    action="#{promocionBean.modoEdicion ? promocionBean.actualizarPromocion : promocionBean.crearPromocion}"
+                    update=":formPrincipal:tablaPromociones,:formPrincipal:messages"
+                    oncomplete="if (args &amp;&amp; !args.validationFailed) PF('dialogPromocion').hide()"/>
+            </f:facet>
+        </p:dialog>
+        
+        <!-- Confirmación de eliminación -->
+        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+            <p:commandButton value="Sí" type="button" styleClass="ui-confirmdialog-yes btn btn-danger"/>
+            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no btn btn-secondary"/>
+        </p:confirmDialog>
+        
+    </h:form>
+</h:body>
+</html>

@@ -27,24 +27,63 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, jakarta.servlet.ServletException {
 
+        // Skip JWT processing for public endpoints
+        String path = req.getRequestURI();
+        if (path.equals("/api/auth/login") || 
+            path.equals("/api/auth/test") || 
+            path.startsWith("/api/clientes") || // Clientes usan X-Cliente-Id, no JWT
+            path.startsWith("/api/resenas") || // Reseñas usan X-Cliente-Id, no JWT
+            path.startsWith("/api/reports/") || 
+            path.startsWith("/api/debug/") ||
+            path.startsWith("/uploads/") ||
+            path.startsWith("/api/productos") ||
+            path.startsWith("/api/categorias")) {
+            chain.doFilter(req, res);
+            return;
+        }
+
+        System.out.println("🔍 JWT Filter processing: " + path);
+        
         final String authHeader = req.getHeader("Authorization");
         String username = null;
         String jwt = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            if (jwtUtil.validateToken(jwt)) {
-                username = jwtUtil.extractUsername(jwt);
+            System.out.println("✅ JWT token found");
+            try {
+                if (jwtUtil.validateToken(jwt)) {
+                    username = jwtUtil.extractUsername(jwt);
+                    System.out.println("✅ JWT valid, username: " + username);
+                } else {
+                    System.out.println("❌ JWT validation failed");
+                }
+            } catch (Exception e) {
+                System.out.println("❌ JWT error: " + e.getMessage());
+                // Invalid token, continue without authentication
+                chain.doFilter(req, res);
+                return;
             }
+        } else {
+            System.out.println("❌ No Authorization header or Bearer token");
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            if (userDetails != null) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            try {
+                System.out.println("🔄 Loading user details for: " + username);
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+                if (userDetails != null) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    System.out.println("✅ Authentication set for: " + username);
+                } else {
+                    System.out.println("❌ UserDetails is null for: " + username);
+                }
+            } catch (Exception e) {
+                System.out.println("❌ Error loading user: " + e.getMessage());
+                // Error loading user, continue without authentication
             }
         }
 

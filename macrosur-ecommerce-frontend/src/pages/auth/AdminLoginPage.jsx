@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const AdminLoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -14,8 +15,8 @@ const AdminLoginPage = () => {
         e.preventDefault();
         setError('');
         
-        // Intentar iniciar sesión como ADMIN (isAdmin: true)
-        const success = await login(email, password, true); 
+        // Intentar iniciar sesión como ADMIN (isAdmin: true) con opción recordarme
+        const success = await login(email, password, true, rememberMe); 
         
         if (success) {
             // El AuthContext ya debería haber validado que el rol es ADMIN/GESTOR
@@ -48,7 +49,7 @@ const AdminLoginPage = () => {
                             />
                         </Form.Group>
 
-                        <Form.Group className="mb-4" controlId="adminPassword">
+                        <Form.Group className="mb-3" controlId="adminPassword">
                             <Form.Label>Contraseña</Form.Label>
                             <Form.Control
                                 type="password"
@@ -59,10 +60,28 @@ const AdminLoginPage = () => {
                             />
                         </Form.Group>
 
-                        <Button variant="danger" type="submit" className="w-100">
+                        <Form.Group className="mb-4" controlId="rememberMe">
+                            <Form.Check
+                                type="checkbox"
+                                label="Recordar mi sesión (24 horas)"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            <Form.Text className="text-muted small">
+                                Sin marcar: sesión expira en 2 horas o al cerrar el navegador
+                            </Form.Text>
+                        </Form.Group>
+
+                        <Button variant="danger" type="submit" className="w-100 mb-3">
                             Ingresar al Sistema
                         </Button>
                     </Form>
+                    
+                    <div className="text-center">
+                        <Button variant="outline-secondary" size="sm" as={Link} to="/">
+                            ← Volver al sitio principal
+                        </Button>
+                    </div>
                 </Card.Body>
             </Card>
         </Container>

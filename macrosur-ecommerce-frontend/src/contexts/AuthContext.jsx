@@ -9,109 +9,221 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userRole, setUserRole] = useState(null); // CLIENTE, ADMIN, GESTOR
+    const [userRole, setUserRole] = useState(null);
+    const [userPermissions, setUserPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [rememberMe, setRememberMe] = useState(false);
     const logoutTimerRef = useRef(null);
-    const SESSION_TTL = 24 * 60 * 60 * 1000; // 24 horas por defecto (en ms)
+    const activityTimerRef = useRef(null);
+    const SESSION_TTL = 24 * 60 * 60 * 1000; // 24 horas si "Recordarme"
+    const SESSION_TTL_SHORT = 2 * 60 * 60 * 1000; // 2 horas sesión normal
+    const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutos de inactividad
 
     useEffect(() => {
-        // Lógica para verificar el token en localStorage al cargar la app
-        const storedToken = localStorage.getItem('authToken');
+        // Lógica para verificar el token en localStorage/sessionStorage al cargar la app
+        const storedToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const storedRememberMe = localStorage.getItem('rememberMe') === 'true';
+        const storedIsAdmin = (localStorage.getItem('isAdmin') || sessionStorage.getItem('isAdmin')) === 'true';
+        
         if (storedToken) {
+            setRememberMe(storedRememberMe);
+            
             // Validar token real con el backend
             const validate = async () => {
                 try {
-                    // Intentar validar el token con el backend
-                    const isValid = await authApi.validateToken(storedToken);
-                    if (isValid) {
-                        // Obtener datos del usuario desde el backend
+                    let userData;
+                    
+                    // Si es cliente, el token ES el objeto de datos
+                    if (!storedIsAdmin) {
                         try {
-                            const res = await fetch('http://localhost:8081/api/auth/me', {
-                                headers: { 'Authorization': `Bearer ${storedToken}` }
-                            });
-                            if (res.ok) {
-                                const userData = await res.json();
-                                const userInfo = {
-                                    id: userData.id,
-                                    name: userData.nombre + ' ' + userData.apellido
-                                };
-                                const role = 'ADMIN'; // Mapear rolId a nombre después
-                                
-                                setUser(userInfo);
-                                setUserRole(role);
-                                setIsAuthenticated(true);
-                            } else {
-                                throw new Error('No se pudo obtener datos del usuario');
+                            const clientData = JSON.parse(storedToken);
+                            userData = await authApi.getCurrentUser(clientData, false);
+                            
+                            // Guardar clienteId si no existe (compatibilidad)
+                            if (clientData.clienteId && !localStorage.getItem('clienteId')) {
+                                localStorage.setItem('clienteId', clientData.clienteId.toString());
                             }
-                        } catch (err) {
-                            console.error('Error obteniendo datos del usuario:', err);
-                            // Fallback con datos básicos del token
-                            const payload = JSON.parse(atob(storedToken.split('.')[1]));
-                            setUser({ id: 1, name: payload.sub || 'Admin' });
-                            setUserRole('ADMIN');
-                            setIsAuthenticated(true);
+                        } catch {
+                            // Token inválido
+                            clearAuthData();
+                            setLoading(false);
+                            return;
                         }
                     } else {
-                        // Token inválido
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('authTokenExpiry');
-                        setUser(null);
-                        setUserRole(null);
-                        setIsAuthenticated(false);
+                        // Si es admin, validar el token JWT
+                        const isValid = await authApi.validateToken(storedToken);
+                        if (!isValid) {
+                            clearAuthData();
+                            setLoading(false);
+                            return;
+                        }
+                        
+                        // Obtener datos del admin
+                        userData = await authApi.getCurrentUser(storedToken, true);
                     }
-                    // Si hay un expiry guardado y válido, programar cierre automático
-                    const rawExpiry = localStorage.getItem('authTokenExpiry');
-                    const expiry = rawExpiry ? parseInt(rawExpiry, 10) : Date.now() + SESSION_TTL;
-                    if (expiry > Date.now()) {
-                        const msUntil = expiry - Date.now();
-                        // Limpiar timer anterior
-                        if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-                        logoutTimerRef.current = setTimeout(() => {
-                            // Auto logout al expirar la sesión
-                            logout();
-                        }, msUntil);
-                    } else {
-                        // Expirado
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('authTokenExpiry');
-                        setUser(null);
-                        setUserRole(null);
-                        setIsAuthenticated(false);
-                    }
+                    
+                    console.log('🔍 AuthContext - Datos del usuario:', userData);
+                    
+                    setUser({
+                        id: userData.id,
+                        name: userData.name,
+                        email: userData.email
+                    });
+                    setUserRole(userData.roleName);
+                    setUserPermissions(userData.permissions);
+                    setIsAuthenticated(true);
+                    
+                    console.log('✅ AuthContext - Usuario autenticado:', {
+                        role: userData.roleName,
+                        permissions: userData.permissions
+                    });
+                    
+                    // Programar auto-logout y detección de inactividad
+                    setupAutoLogout(storedRememberMe);
+                    setupInactivityDetection();
                 } catch (e) {
                     console.error('Error validando token:', e);
-                    // Fallback: limpiar
-                    localStorage.removeItem('authToken');
-                    setUser(null);
-                    setUserRole(null);
-                    setIsAuthenticated(false);
+                    clearAuthData();
                 } finally {
                     setLoading(false);
                 }
             };
             validate();
-        }
-        else {
+        } else {
             // No hay token: dejar de cargar
             setLoading(false);
         }
     }, []);
 
-    const login = async (email, password, isAdmin) => {
+    // Función auxiliar para limpiar datos de autenticación
+    const clearAuthData = () => {
+        // Limpiar tanto localStorage como sessionStorage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authTokenExpiry');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('isAdmin');
+        localStorage.removeItem('clienteId'); // Compatibilidad con API de reseñas
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('authTokenExpiry');
+        sessionStorage.removeItem('isAdmin');
+        
+        setUser(null);
+        setUserRole(null);
+        setUserPermissions([]);
+        setIsAuthenticated(false);
+        setRememberMe(false);
+        
+        // Limpiar timers
+        if (logoutTimerRef.current) {
+            clearTimeout(logoutTimerRef.current);
+            logoutTimerRef.current = null;
+        }
+        if (activityTimerRef.current) {
+            clearTimeout(activityTimerRef.current);
+            activityTimerRef.current = null;
+        }
+        
+        // Remover listeners de actividad
+        document.removeEventListener('mousemove', resetInactivityTimer);
+        document.removeEventListener('keydown', resetInactivityTimer);
+        document.removeEventListener('click', resetInactivityTimer);
+    };
+
+    // Función auxiliar para configurar auto-logout
+    const setupAutoLogout = (remember = false) => {
+        const storage = remember ? localStorage : sessionStorage;
+        const rawExpiry = storage.getItem('authTokenExpiry');
+        const expiry = rawExpiry ? parseInt(rawExpiry, 10) : Date.now() + (remember ? SESSION_TTL : SESSION_TTL_SHORT);
+        
+        if (expiry > Date.now()) {
+            const msUntil = expiry - Date.now();
+            if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+            logoutTimerRef.current = setTimeout(() => {
+                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                logout();
+            }, msUntil);
+        } else {
+            clearAuthData();
+        }
+    };
+
+    // Detección de inactividad (estándar: 30 min sin actividad)
+    const resetInactivityTimer = () => {
+        if (activityTimerRef.current) {
+            clearTimeout(activityTimerRef.current);
+        }
+        activityTimerRef.current = setTimeout(() => {
+            alert('Tu sesión se cerró por inactividad.');
+            logout();
+        }, INACTIVITY_TIMEOUT);
+    };
+
+    const setupInactivityDetection = () => {
+        // Escuchar eventos de actividad del usuario
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('keydown', resetInactivityTimer);
+        document.addEventListener('click', resetInactivityTimer);
+        
+        // Iniciar el timer
+        resetInactivityTimer();
+    };
+
+    const login = async (email, password, isAdmin, remember = false) => {
         try {
             const response = await authApi.login(email, password, isAdmin);
             
-            // Simulación de éxito
-            localStorage.setItem('authToken', response.token);
-            // Guardar expiry (ahora + TTL)
-            const expiry = Date.now() + SESSION_TTL;
-            localStorage.setItem('authTokenExpiry', expiry.toString());
-            // Programar auto-logout cuando expire la sesión
-            if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
-            logoutTimerRef.current = setTimeout(() => logout(), SESSION_TTL);
-            setUser({ id: response.userId, name: response.userName });
-            setUserRole(response.role);
+            // Decidir storage según "Recordarme"
+            const storage = remember ? localStorage : sessionStorage;
+            const ttl = remember ? SESSION_TTL : SESSION_TTL_SHORT;
+            
+            // Para clientes, el response ya contiene los datos (no hay token JWT)
+            const tokenOrData = response.token || response;
+            
+            // Guardar token/datos y email
+            storage.setItem('authToken', typeof tokenOrData === 'string' ? tokenOrData : JSON.stringify(tokenOrData));
+            storage.setItem('userEmail', email);
+            storage.setItem('isAdmin', isAdmin.toString());
+            const expiry = Date.now() + ttl;
+            storage.setItem('authTokenExpiry', expiry.toString());
+            
+            // Si es cliente, también guardar clienteId separadamente para compatibilidad con API de reseñas
+            if (!isAdmin && typeof tokenOrData === 'object' && tokenOrData.clienteId) {
+                localStorage.setItem('clienteId', tokenOrData.clienteId.toString());
+            }
+            
+            // Guardar preferencia de recordar en localStorage
+            if (remember) {
+                localStorage.setItem('rememberMe', 'true');
+            }
+            
+            setRememberMe(remember);
+            
+            // Obtener datos completos del usuario
+            const userData = await authApi.getCurrentUser(tokenOrData, isAdmin);
+            
+            console.log('🔍 Login - Datos del usuario:', userData);
+            
+            setUser({
+                id: userData.id,
+                name: userData.name,
+                email: userData.email
+            });
+            setUserRole(userData.roleName);
+            setUserPermissions(userData.permissions);
             setIsAuthenticated(true);
+            
+            console.log('✅ Login - Usuario autenticado:', {
+                role: userData.roleName,
+                permissions: userData.permissions,
+                rememberMe: remember,
+                sessionTTL: remember ? '24 horas' : '2 horas'
+            });
+            
+            // Configurar auto-logout y detección de inactividad
+            setupAutoLogout(remember);
+            setupInactivityDetection();
+            
             return true;
         } catch (error) {
             console.error('Fallo en el login:', error);
@@ -119,16 +231,22 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('authToken');
-        setUser(null);
-        setUserRole(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem('authTokenExpiry');
-        if (logoutTimerRef.current) {
-            clearTimeout(logoutTimerRef.current);
-            logoutTimerRef.current = null;
+    const logout = (showMessage = false) => {
+        if (showMessage) {
+            // Opcional: mostrar mensaje de despedida
+            console.log('👋 Sesión cerrada correctamente');
         }
+        clearAuthData();
+    };
+
+    // Función para verificar si el usuario tiene un permiso específico
+    const hasPermission = (permission) => {
+        return userPermissions.includes(permission);
+    };
+
+    // Función para verificar si el usuario tiene un rol específico
+    const hasRole = (role) => {
+        return userRole === role;
     };
 
     const contextValue = {
@@ -136,8 +254,11 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated,
         loading,
         userRole,
+        userPermissions,
         login,
-        logout
+        logout,
+        hasPermission,
+        hasRole
     };
 
     return (

@@ -1,104 +1,161 @@
 // java
 package com.macrosur.ecommerce.controller;
 
-import com.macrosur.ecommerce.dto.AuthRequest;
-import com.macrosur.ecommerce.dto.AuthResponse;
+import com.macrosur.ecommerce.dto.*;
 import com.macrosur.ecommerce.entity.UsuarioAdmin;
 import com.macrosur.ecommerce.repository.UsuarioAdminRepository;
 import com.macrosur.ecommerce.security.JwtUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.security.authentication.*;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173"})
 public class AuthController {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    private final UsuarioAdminRepository userRepo;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    private AuthenticationManager authManager;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private UsuarioAdminRepository usuarioRepo;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    public AuthController(UsuarioAdminRepository userRepo, 
+                         AuthenticationManager authenticationManager,
+                         UserDetailsService userDetailsService,
+                         JwtUtil jwtUtil) {
+        this.userRepo = userRepo;
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.jwtUtil = jwtUtil;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest req) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
         try {
-            authManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(req.getCorreo(), req.getPassword())
+            // Verificar que los datos lleguen correctamente
+            if (authRequest.getCorreo_corporativo() == null || authRequest.getContrasena() == null) {
+                throw new BadCredentialsException("Credenciales faltantes");
+            }
+            
+            // Autenticar usuario
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    authRequest.getCorreo_corporativo(), 
+                    authRequest.getContrasena()
+                )
             );
-            String token = jwtUtil.generateToken(req.getCorreo());
-            log.info("AUTH LOGIN -> correo={}", req.getCorreo());
-            return ResponseEntity.ok(new AuthResponse(token));
-        } catch (AuthenticationException ex) {
-            log.warn("Autenticación fallida para correo={}", req.getCorreo());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody UsuarioAdmin user) {
-        if (usuarioRepo.existsByCorreo(user.getCorreo())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Correo ya registrado");
-        }
-        user.setContrasenaHash(passwordEncoder.encode(user.getContrasenaHash()));
-        usuarioRepo.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado");
-    }
+            System.out.println("✅ Authentication successful");
 
-    @PostMapping("/validate")
-    public ResponseEntity<Void> validateToken(@RequestHeader("Authorization") String authHeader) {
-        try {
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                if (jwtUtil.validateToken(token)) {
-                    return ResponseEntity.ok().build();
+            // Cargar detalles del usuario
+            UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getCorreo_corporativo());
+            
+            // Generar token JWT
+            String token = jwtUtil.generateToken(userDetails.getUsername());
+
+            // Obtener datos del usuario para la respuesta
+            UsuarioAdmin usuario = userRepo.findByCorreoWithRoleAndPermissions(authRequest.getCorreo_corporativo())
+                .orElseThrow(() -> new BadCredentialsException("Usuario no encontrado"));
+
+            System.out.println("✅ User found: " + usuario.getNombre() + " " + usuario.getApellido());
+
+            // Crear respuesta
+            AuthResponse response = new AuthResponse();
+            response.setToken(token);
+            response.setUsuario_admin_id(usuario.getUsuario_admin_id());
+            response.setNombre(usuario.getNombre());
+            response.setApellido(usuario.getApellido());
+            response.setCorreo_corporativo(usuario.getCorreo_corporativo());
+            
+            if (usuario.getRole() != null) {
+                RoleDto roleDto = new RoleDto();
+                roleDto.rol_id = usuario.getRole().getRol_id();
+                roleDto.nombre_rol = usuario.getRole().getNombreRol();
+                response.setRole(roleDto);
+
+                if (usuario.getRole().getPermissions() != null) {
+                    response.setPermissions(usuario.getRole().getPermissions().stream().map(p -> {
+                        PermissionDto pd = new PermissionDto();
+                        pd.permiso_id = p.getPermiso_id();
+                        pd.nombre_permiso = p.getNombrePermiso();
+                        return pd;
+                    }).collect(java.util.stream.Collectors.toSet()));
                 }
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+            System.out.println("✅ Login successful, returning response");
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            log.warn("Error validando token: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            System.out.println("❌ Login failed: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(401).build();
         }
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UsuarioAdmin> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<UsuarioAdminDto> me() {
+        System.out.println("🔍 /me endpoint called");
+        
         try {
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                String correo = jwtUtil.extractUsername(token);
-                if (correo != null && jwtUtil.validateToken(token)) {
-                    Optional<UsuarioAdmin> userOpt = usuarioRepo.findByCorreo(correo);
-                    if (userOpt.isPresent()) {
-                        UsuarioAdmin user = userOpt.get();
-                        // No devolver la contraseña
-                        user.setContrasenaHash(null);
-                        return ResponseEntity.ok(user);
-                    }
-                }
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null) {
+                System.out.println("❌ No authentication found");
+                return ResponseEntity.status(401).build();
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            
+            String correo = authentication.getName();
+            System.out.println("✅ Authenticated user: " + correo);
+            
+            UsuarioAdmin usuario = userRepo.findByCorreoWithRoleAndPermissions(correo)
+                    .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+            
+            System.out.println("✅ User found in DB: " + usuario.getNombre());
+            UsuarioAdminDto dto = new UsuarioAdminDto();
+        dto.usuario_admin_id = usuario.getUsuario_admin_id();
+        dto.nombre = usuario.getNombre();
+        dto.apellido = usuario.getApellido();
+        dto.correo_corporativo = usuario.getCorreo_corporativo();
+        dto.activo = usuario.getActivo();
+        if (usuario.getRole() != null) {
+            RoleDto rd = new RoleDto();
+            rd.rol_id = usuario.getRole().getRol_id();
+            rd.nombre_rol = usuario.getRole().getNombreRol();
+            dto.role = rd;
+            if (usuario.getRole().getPermissions() != null) {
+                dto.permissions = usuario.getRole().getPermissions().stream().map(p -> {
+                    PermissionDto pd = new PermissionDto();
+                    pd.permiso_id = p.getPermiso_id();
+                    pd.nombre_permiso = p.getNombrePermiso();
+                    return pd;
+                }).collect(java.util.stream.Collectors.toSet());
+            }
+        }
+        
+        System.out.println("✅ Returning user data for /me");
+        return ResponseEntity.ok(dto);
+        
         } catch (Exception e) {
-            log.warn("Error obteniendo usuario actual: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            System.out.println("❌ Error in /me endpoint: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
+
+    @PostMapping("/validate")
+    public ResponseEntity<Boolean> validateToken() {
+        // Si llegamos aquí, significa que el token es válido (gracias al JwtFilter)
+        return ResponseEntity.ok(true);
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("Auth controller is working!");
+    }
 }
-
-

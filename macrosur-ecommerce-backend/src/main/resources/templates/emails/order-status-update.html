@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Actualización de Pedido</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 40px 30px; text-align: center; color: white;">
+                            <h1 style="margin: 0; font-size: 28px;">📦 Actualización de Pedido</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Tu pedido ha sido actualizado</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">
+                                Hola <strong th:text="${customerName}">Cliente</strong>,
+                            </p>
+
+                            <!-- Status Update Box -->
+                            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 25px; margin: 25px 0; text-align: center;">
+                                <p style="margin: 0 0 15px 0; color: #6c757d; font-size: 14px;">Estado del pedido:</p>
+                                <div style="display: inline-block; padding: 12px 30px; border-radius: 25px; font-weight: bold; font-size: 18px;"
+                                     th:style="${statusColor != null} ? 'background-color: ' + ${statusColor} + '; color: white;' : 'background-color: #28a745; color: white;'">
+                                    <span th:text="${newStatus}">En Tránsito</span>
+                                </div>
+                                <p style="margin: 15px 0 0 0; color: #495057; font-size: 13px;">
+                                    Actualizado el <span th:text="${#dates.format(updateDate, 'dd/MM/yyyy HH:mm')}">28/11/2025 14:30</span>
+                                </p>
+                            </div>
+
+                            <!-- Order Info -->
+                            <table width="100%" cellpadding="15" style="background-color: #f8f9fa; border-radius: 5px; margin: 25px 0;">
+                                <tr>
+                                    <td>
+                                        <strong style="color: #495057; font-size: 13px;">Número de Pedido</strong><br/>
+                                        <span style="font-size: 20px; color: #dc3545; font-weight: bold;" th:text="${orderId}">#12345</span>
+                                    </td>
+                                    <td align="right">
+                                        <strong style="color: #495057; font-size: 13px;">Fecha de Pedido</strong><br/>
+                                        <span style="font-size: 16px; color: #333;" th:text="${#dates.format(orderDate, 'dd/MM/yyyy')}">28/11/2025</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Status Message -->
+                            <div th:if="${statusMessage != null}" 
+                                 style="background-color: #e7f3ff; border-left: 4px solid #0d6efd; padding: 20px; border-radius: 4px; margin: 25px 0;">
+                                <p style="margin: 0; color: #084298; font-size: 14px; line-height: 1.6;" th:text="${statusMessage}">
+                                    Tu pedido está en camino y debería llegar pronto.
+                                </p>
+                            </div>
+
+                            <!-- Tracking Info (if available) -->
+                            <div th:if="${trackingNumber != null}" style="margin: 25px 0;">
+                                <h4 style="margin: 0 0 15px 0; color: #333; font-size: 16px;">Información de Seguimiento</h4>
+                                <div style="background-color: #fff3cd; padding: 20px; border-radius: 5px;">
+                                    <table width="100%">
+                                        <tr>
+                                            <td style="color: #856404; font-size: 13px;"><strong>Número de Guía:</strong></td>
+                                            <td align="right" style="font-size: 16px; font-weight: bold; color: #333;" th:text="${trackingNumber}">
+                                                ABC123456789
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${carrier != null}">
+                                            <td style="padding-top: 10px; color: #856404; font-size: 13px;"><strong>Transportista:</strong></td>
+                                            <td align="right" style="padding-top: 10px; color: #333;" th:text="${carrier}">Courier Express</td>
+                                        </tr>
+                                        <tr th:if="${estimatedDelivery != null}">
+                                            <td style="padding-top: 10px; color: #856404; font-size: 13px;"><strong>Entrega Estimada:</strong></td>
+                                            <td align="right" style="padding-top: 10px; color: #333;" 
+                                                th:text="${#dates.format(estimatedDelivery, 'dd/MM/yyyy')}">30/11/2025</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Timeline Progress -->
+                            <div style="margin: 30px 0;">
+                                <h4 style="margin: 0 0 20px 0; color: #333; font-size: 16px;">Progreso del Pedido</h4>
+                                <table width="100%" cellpadding="8">
+                                    <tr>
+                                        <td align="center" style="width: 25%;">
+                                            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #28a745; color: white; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">
+                                                ✓
+                                            </div>
+                                            <p style="margin: 8px 0 0 0; font-size: 12px; color: #495057;">Confirmado</p>
+                                        </td>
+                                        <td align="center" style="width: 25%;">
+                                            <div style="width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;"
+                                                 th:style="${statusStep >= 2} ? 'background-color: #28a745; color: white;' : 'background-color: #e9ecef; color: #6c757d;'">
+                                                <span th:text="${statusStep >= 2} ? '✓' : '2'">✓</span>
+                                            </div>
+                                            <p style="margin: 8px 0 0 0; font-size: 12px; color: #495057;">Preparando</p>
+                                        </td>
+                                        <td align="center" style="width: 25%;">
+                                            <div style="width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;"
+                                                 th:style="${statusStep >= 3} ? 'background-color: #28a745; color: white;' : 'background-color: #e9ecef; color: #6c757d;'">
+                                                <span th:text="${statusStep >= 3} ? '✓' : '3'">3</span>
+                                            </div>
+                                            <p style="margin: 8px 0 0 0; font-size: 12px; color: #495057;">En Tránsito</p>
+                                        </td>
+                                        <td align="center" style="width: 25%;">
+                                            <div style="width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;"
+                                                 th:style="${statusStep >= 4} ? 'background-color: #28a745; color: white;' : 'background-color: #e9ecef; color: #6c757d;'">
+                                                <span th:text="${statusStep >= 4} ? '✓' : '4'">4</span>
+                                            </div>
+                                            <p style="margin: 8px 0 0 0; font-size: 12px; color: #495057;">Entregado</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- CTA Button -->
+                            <div align="center" style="margin: 35px 0;">
+                                <a th:href="${trackingUrl}" 
+                                   style="display: inline-block; padding: 16px 40px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">
+                                    Rastrear Mi Pedido
+                                </a>
+                            </div>
+
+                            <!-- Help -->
+                            <div style="text-align: center; margin: 30px 0 0 0; padding-top: 25px; border-top: 1px solid #dee2e6;">
+                                <p style="font-size: 13px; color: #6c757d; margin: 0 0 5px 0;">
+                                    ¿Tienes alguna pregunta sobre tu pedido?
+                                </p>
+                                <p style="font-size: 13px; margin: 0;">
+                                    <a href="mailto:support@macrosur.com" style="color: #dc3545; text-decoration: none;">
+                                        Contáctanos
+                                    </a>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; color: #6c757d; font-size: 12px;">
+                            <p style="margin: 0 0 10px 0;"><strong>Macrosur E-commerce</strong></p>
+                            <p style="margin: 0 0 5px 0;">Gracias por tu preferencia</p>
+                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #999;">
+                                Este email fue enviado automáticamente, por favor no responder.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

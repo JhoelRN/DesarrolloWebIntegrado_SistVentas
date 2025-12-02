@@ -18,22 +18,32 @@ const Footer = () => {
             <h6 className="fw-bold">COMPRA</h6>
             <Nav className="flex-column">
               <Nav.Link as={Link} to="/catalogo" className="text-white small p-0 mb-1">Catálogo</Nav.Link>
-              <Nav.Link as={Link} to="/info/stock-consignado" className="text-white small p-0 mb-1">Stock Consignado</Nav.Link>
-              <Nav.Link as={Link} to="/track" className="text-white small p-0 mb-1">Rastreo</Nav.Link>
+              <Nav.Link as={Link} to="/seguimiento" className="text-white small p-0 mb-1">Rastreo de Pedidos</Nav.Link>
             </Nav>
           </Col>
           <Col md={3} className="mb-3">
             <h6 className="fw-bold">AYUDA</h6>
             <Nav className="flex-column">
-              <Nav.Link as={Link} to="/info/politica-devoluciones" className="text-white small p-0 mb-1">Devoluciones</Nav.Link>
-              <Nav.Link as={Link} to="/info/terminos" className="text-white small p-0 mb-1">Términos y Condiciones</Nav.Link>
-              <Nav.Link as={Link} to="/profile/claims" className="text-white small p-0 mb-1">Libro de Reclamaciones</Nav.Link>
+              <Nav.Link as={Link} to="/ayuda" className="text-white small p-0 mb-1">Centro de Ayuda</Nav.Link>
+              <Nav.Link as={Link} to="/devoluciones" className="text-white small p-0 mb-1">Devoluciones</Nav.Link>
+              <Nav.Link as={Link} to="/terminos-condiciones" className="text-white small p-0 mb-1">Términos y Condiciones</Nav.Link>
+              <Nav.Link as={Link} to="/libro-reclamaciones" className="text-white small p-0 mb-1">Libro de Reclamaciones</Nav.Link>
             </Nav>
           </Col>
           <Col md={3} className="mb-3">
              <h6 className="fw-bold">CONTACTO</h6>
-             <p className="small mb-1">Email: contacto@macrosur.com</p>
-             <p className="small">Teléfono: +51 987 654 321</p>
+             <p className="small mb-1">
+               <i className="bi bi-envelope me-1"></i>
+               Email: contacto@macrosur.cl
+             </p>
+             <p className="small mb-1">
+               <i className="bi bi-telephone me-1"></i>
+               Teléfono: +56 2 1234 5678
+             </p>
+             <p className="small mb-0">
+               <i className="bi bi-geo-alt me-1"></i>
+               Santiago, Chile
+             </p>
           </Col>
         </Row>
         <div className="text-center small mt-3 border-top pt-3 text-muted">

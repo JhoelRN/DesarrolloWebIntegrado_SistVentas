@@ -22,15 +22,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {})  // Habilita CORS usando la configuración por defecto
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/auth/validate").permitAll()
-                        .requestMatchers("/api/auth/me").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/test").permitAll()
+                        .requestMatchers("/api/clientes/**").permitAll() // TEMPORAL: Todas las rutas de clientes públicas (usa X-Cliente-Id)
+                        .requestMatchers("/api/resenas/**").permitAll() // TEMPORAL: Todas las rutas de reseñas públicas (usa X-Cliente-Id)
+                        .requestMatchers("/api/reports/**").permitAll() // TEMPORAL: Para probar reportes
+                        .requestMatchers("/api/debug/**").permitAll() // TEMPORAL: Para debugging
+                        .requestMatchers("/api/categorias", "/api/categorias/**").permitAll() // TEMPORAL: Endpoints de categorías públicos
+                        .requestMatchers("/api/productos", "/api/productos/**").permitAll() // TEMPORAL: Endpoints de productos públicos
+                        .requestMatchers("/api/inventario/stock/**").permitAll() // Consulta pública de stock para clientes
+                        .requestMatchers("/api/pedidos", "/api/pedidos/**").permitAll() // TEMPORAL: Para cliente web (usa X-Cliente-Id), admin usa JWT
+                        .requestMatchers("/api/promociones/activas").permitAll() // Endpoint público para banner de promociones
+                        .requestMatchers("/api/logistica/**").authenticated() // Endpoints de logística requieren autenticación JWT
+                        .requestMatchers("/uploads/**").permitAll() // Servir archivos estáticos (imágenes)
+                        .requestMatchers("/error", "/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )
+                .sessionManagement(session -> session.sessionCreationPolicy(
+                    org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .userDetailsService(userDetailsService);
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -39,8 +50,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+    public org.springframework.security.crypto.password.PasswordEncoder passwordEncoder() {
+        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
     }
 
     @Bean

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Navbar,
@@ -12,245 +12,170 @@ import {
 } from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
+import * as categoriasApi from '../../api/categorias';
 
 const Header = () => {
-  const { isAuthenticated, user, userRole, logout } = useAuth();
-  const { cartItems, cartCount } = useCart();
-  const navigate = useNavigate();
+    const { isAuthenticated, user, userRole, logout } = useAuth();
+    const { cartCount } = useCart();
+    const navigate = useNavigate();
+    const [categorias, setCategorias] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const query = e.target.searchQuery.value;
-    if (query) {
-      navigate(`/catalogo?q=${query}`);
-    }
-  };
+    // Cargar categorías al montar el componente
+    useEffect(() => {
+        const fetchCategorias = async () => {
+            try {
+                const data = await categoriasApi.getCategorias({ activo: true, size: 10 });
+                // Filtrar solo categorías principales (sin padre) y visibles al cliente
+                const principales = (data.content || []).filter(
+                    cat => !cat.categoriaPadreId && cat.visibleCliente
+                );
+                setCategorias(principales.slice(0, 5)); // Máximo 5 para el navbar
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+            }
+        };
+        fetchCategorias();
+    }, []);
 
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchTerm.trim()) {
+            navigate(`/catalogo?search=${encodeURIComponent(searchTerm.trim())}`);
+            setSearchTerm(''); // Limpiar después de buscar
+        }
+    };
 
-  return (
-    <header className="fixed-top shadow-sm">
-      {/* Top Bar de Servicios y Ayuda */}
-      <div className="bg-light border-bottom py-1 small">
-        <Container className="d-flex justify-content-end">
-          <Nav>
-            <Nav.Link
-              as={Link}
-              to="/info/soporte"
-              className="text-secondary me-3"
-            >
-              <i className="bi bi-headset me-1"></i> Ayuda al Cliente
-            </Nav.Link>
-            <Nav.Link as={Link} to="/track" className="text-secondary">
-              <i className="bi bi-geo-alt-fill me-1"></i> Rastrea tu Pedido
-            </Nav.Link>
-          </Nav>
-        </Container>
-      </div>
+    return (
+        <header className="fixed-top shadow-sm">
+            {/* Top Bar de Servicios y Ayuda */}
+            <div className="bg-light border-bottom py-1 small">
+                <Container className="d-flex justify-content-end">
+                    <Nav>
+                        <Nav.Link as={Link} to="/ayuda" className="text-secondary me-3">
+                            <i className="bi bi-headset me-1"></i> Ayuda al Cliente
+                        </Nav.Link>
+                        <Nav.Link as={Link} to="/seguimiento" className="text-secondary">
+                            <i className="bi bi-geo-alt-fill me-1"></i> Rastrea tu Pedido
+                        </Nav.Link>
+                    </Nav>
+                </Container>
+            </div>
 
-      {/* Navbar Principal - fondo blanco */}
-      <Navbar bg="white" expand="lg" className="py-3">
-        <Container>
-          <Navbar.Brand
-            as={Link}
-            to="/"
-            className="fw-bold fs-1 text-primary display-4"
-          >
-            MACROSUR
-          </Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            {/* 1. Barra de Búsqueda Centrada */}
-            <Form
-              className="d-flex mx-auto flex-grow-1"
-              onSubmit={handleSearch}
-              style={{ maxWidth: '600px' }}
-            >
-              <InputGroup>
-                <Form.Control
-                  type="search"
-                  placeholder="Buscar alfombras, cortinas, accesorios..."
-                  className="me-2 rounded-start"
-                  aria-label="Search"
-                  name="searchQuery"
-                />
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className="rounded-end"
-                >
-                  <i className="bi bi-search"></i>
-                </Button>
-              </InputGroup>
-            </Form>
+            {/* Navbar Principal */}
+            <Navbar bg="white" expand="lg" className="py-3">
+                <Container>
+                    <Navbar.Brand as={Link} to="/" className="fw-bold fs-3 text-primary">
+                        MACROSUR
+                    </Navbar.Brand>
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        
+                        {/* 1. Barra de Búsqueda Centrada */}
+                        <Form className="d-flex mx-auto" onSubmit={handleSearch} style={{ maxWidth: '500px' }}>
+                            <InputGroup>
+                                <Form.Control
+                                    type="search"
+                                    placeholder="Buscar productos..."
+                                    className="me-2 rounded-start"
+                                    aria-label="Search"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                <Button variant="primary" type="submit" className="rounded-end" disabled={!searchTerm.trim()}>
+                                    <i className="bi bi-search"></i>
+                                </Button>
+                            </InputGroup>
+                        </Form>
 
-            {/* 2. Iconos de Usuario y Carrito */}
-            <Nav className="ms-auto d-flex align-items-center">
-              {/* Menú de Usuario */}
-              {isAuthenticated ? (
-                <Dropdown align="end" className="me-2">
-                  <Dropdown.Toggle
-                    variant="light"
-                    id="dropdown-basic"
-                    className="rounded-pill px-3"
-                  >
-                    <i className="bi bi-person-circle me-1"></i>
-                    {user?.name || 'Mi Cuenta'}
-                  </Dropdown.Toggle>
+                        {/* 2. Iconos de Usuario y Carrito */}
+                        <Nav className="ms-auto d-flex align-items-center">
+                            {/* Menú de Usuario (AuthContext unificado para Admin y Cliente) */}
+                            {isAuthenticated ? (
+                                <Dropdown align="end" className="me-2">
+                                    <Dropdown.Toggle 
+                                        variant={userRole === 'CLIENTE' ? 'success' : 'light'} 
+                                        id="dropdown-basic" 
+                                        className="rounded-pill px-3"
+                                    >
+                                        <i className="bi bi-person-circle me-1"></i> 
+                                        {user?.name || 'Mi Cuenta'}
+                                    </Dropdown.Toggle>
 
-                  <Dropdown.Menu>
-                    {userRole === 'CLIENTE' && (
-                      <>
-                        <Dropdown.Item as={Link} to="/profile">
-                          Mi Perfil
-                        </Dropdown.Item>
-                        <Dropdown.Item as={Link} to="/profile/orders">
-                          Mis Pedidos
-                        </Dropdown.Item>
-                      </>
-                    )}
-                    {(userRole === 'ADMIN' || userRole === 'GESTOR') && (
-                      <>
-                        <Dropdown.Item
-                          as={Link}
-                          to="/admin/dashboard"
-                          className="text-danger"
-                        >
-                          Panel Admin
-                        </Dropdown.Item>
-                        <Dropdown.Divider />
-                      </>
-                    )}
-                    <Dropdown.Item onClick={logout}>
-                      Cerrar Sesión
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-              ) : (
-                <>
-                  <Nav.Link
-                    as={Link}
-                    to="/login"
-                    className="btn btn-outline-primary me-2 rounded-pill px-3"
-                  >
-                    Iniciar Sesión
-                  </Nav.Link>
-                  <Nav.Link
-                    as={Link}
-                    to="/admin/login"
-                    className="btn btn-outline-danger me-2 rounded-pill px-3 d-none d-lg-inline"
-                  >
-                    Admin Login
-                  </Nav.Link>
-                </>
-              )}
+                                    <Dropdown.Menu>
+                                        {userRole === 'CLIENTE' && (
+                                            <>
+                                                <Dropdown.Item as={Link} to="/cliente/perfil">
+                                                    <i className="bi bi-person me-2"></i>Mi Perfil
+                                                </Dropdown.Item>
+                                                <Dropdown.Item as={Link} to="/mis-pedidos">
+                                                    <i className="bi bi-box-seam me-2"></i>Mis Pedidos
+                                                </Dropdown.Item>
+                                                <Dropdown.Divider />
+                                            </>
+                                        )}
+                                        {(userRole === 'ADMIN' || userRole === 'GESTOR_LOGISTICA' || userRole === 'GESTOR_PRODUCTOS' || userRole === 'GESTOR_COMERCIAL') && (
+                                            <>
+                                                <Dropdown.Item as={Link} to="/admin/dashboard" className="text-danger">
+                                                    <i className="bi bi-speedometer2 me-2"></i>Panel Admin
+                                                </Dropdown.Item>
+                                                <Dropdown.Divider />
+                                            </>
+                                        )}
+                                        <Dropdown.Item onClick={() => { logout(); navigate('/'); }}>
+                                            <i className="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                                        </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                            ) : (
+                                <>
+                                    <Nav.Link as={Link} to="/login" className="btn btn-outline-primary me-2 rounded-pill px-3">
+                                        <i className="bi bi-person me-1"></i>Iniciar Sesión
+                                    </Nav.Link>
+                                    
+                                    {/* Enlace al login de Admin */}
+                                    <Nav.Link as={Link} to="/admin/login" className="btn btn-outline-danger me-2 rounded-pill px-3 d-none d-lg-inline">
+                                        <i className="bi bi-shield-lock me-1"></i>Admin
+                                    </Nav.Link>
+                                </>
+                            )}
+                            
+                            {/* Icono de Carrito */}
+                            <Nav.Link as={Link} to="/cart" className="position-relative">
+                                <i className="bi bi-cart3 fs-4"></i>
+                                {cartCount > 0 && (
+                                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </Nav.Link>
+                        </Nav>
+                    </Navbar.Collapse>
+                </Container>
+            </Navbar>
 
-              {/* Mini Carrito */}
-              <Dropdown align="end" className="ms-2">
-                <Dropdown.Toggle
-                  as={Nav.Link}
-                  className="position-relative"
-                  id="cart-dropdown"
-                >
-                  {/* 👇 Carrito en azul */}
-                  <i className="bi bi-cart3 fs-4 text-primary"></i>
-                  {cartCount > 0 && (
-                    <Badge
-                      bg="danger"
-                      pill
-                      className="position-absolute top-0 start-100 translate-middle"
-                    >
-                      {cartCount}
-                    </Badge>
-                  )}
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu style={{ minWidth: '300px' }}>
-                  {cartCount === 0 ? (
-                    <span className="dropdown-item text-muted">
-                      Tu carrito está vacío
-                    </span>
-                  ) : (
-                    <>
-                      {cartItems.slice(0, 3).map((item) => (
-                        <Dropdown.Item
-                          key={item.id}
-                          className="d-flex align-items-center"
-                        >
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            style={{
-                              width: '40px',
-                              height: '40px',
-                              objectFit: 'cover',
-                              marginRight: '10px',
-                            }}
-                          />
-                          <div className="flex-grow-1">
-                            <div className="fw-semibold">{item.name}</div>
-                            <small>
-                              {item.quantity} x ${item.price}
-                            </small>
-                          </div>
-                        </Dropdown.Item>
-                      ))}
-                      <Dropdown.Divider />
-                      <div className="px-3 py-2">
-                        <div className="d-flex justify-content-between fw-bold">
-                          <span>Total:</span>
-                          <span>${subtotal}</span>
-                        </div>
-                        <Button
-                          as={Link}
-                          to="/cart"
-                          variant="primary"
-                          className="w-100 mt-2"
-                        >
-                          Ver Carrito
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </Dropdown.Menu>
-              </Dropdown>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
-
-      {/* Navbar de Categorías */}
-      <Navbar bg="dark" variant="dark" className="py-0 d-none d-lg-block">
-        <Container>
-          <Nav className="me-auto">
-            <Nav.Link
-              as={Link}
-              to="/catalogo?c=alfombras"
-              className="fw-semibold"
-            >
-              Alfombras
-            </Nav.Link>
-            <Nav.Link as={Link} to="/catalogo?c=cortinas">
-              Cortinas
-            </Nav.Link>
-            <Nav.Link as={Link} to="/catalogo?c=accesorios">
-              Accesorios
-            </Nav.Link>
-            <Nav.Link
-              as={Link}
-              to="/info/nuestras-tiendas"
-              className="text-warning fw-semibold"
-            >
-              Nuestras Tiendas
-            </Nav.Link>
-          </Nav>
-        </Container>
-      </Navbar>
-    </header>
-  );
+            {/* Navbar de Categorías Dinámicas */}
+            <Navbar bg="dark" variant="dark" className="py-2 d-none d-lg-block">
+                <Container>
+                    <Nav className="me-auto">
+                        <Nav.Link as={Link} to="/catalogo" className="fw-semibold text-white">
+                            <i className="bi bi-grid-3x3-gap me-1"></i> Todas las Categorías
+                        </Nav.Link>
+                        {categorias.map((categoria) => (
+                            <Nav.Link 
+                                key={categoria.categoriaId}
+                                as={Link} 
+                                to={`/catalogo?categoria=${categoria.categoriaId}`}
+                                className="text-white-50"
+                            >
+                                {categoria.nombre}
+                            </Nav.Link>
+                        ))}
+                    </Nav>
+                </Container>
+            </Navbar>
+        </header>
+    );
 };
 
 export default Header;

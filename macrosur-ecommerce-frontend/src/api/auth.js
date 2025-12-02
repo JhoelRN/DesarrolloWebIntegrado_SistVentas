@@ -2,17 +2,19 @@ const API_BASE = 'http://localhost:8081/api';
 
 export const login = async (email, password, isAdmin) => {
     try {
-        // Llamada real al backend Spring Boot
-        const res = await fetch(`${API_BASE}/auth/login`, {
+        // Decidir endpoint según tipo de usuario
+        const endpoint = isAdmin ? `${API_BASE}/auth/login` : `${API_BASE}/clientes/login`;
+        const bodyData = isAdmin 
+            ? { correo_corporativo: email, contrasena: password }
+            : { correo: email, contrasena: password };
+        
+        const res = await fetch(endpoint, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ 
-                correo: email,  // Tu backend espera 'correo', no 'email'
-                password: password 
-            }),
+            body: JSON.stringify(bodyData),
         });
 
         if (!res.ok) {
@@ -21,49 +23,61 @@ export const login = async (email, password, isAdmin) => {
 
         const data = await res.json();
         
-        // Tu backend devuelve { token: "jwt-string" }
-        // Necesitamos decodificar el JWT para obtener datos del usuario
-        const userInfo = await getUserInfoFromToken(data.token);
-        
-        return { 
-            token: data.token, 
-            userId: userInfo.userId, 
-            userName: userInfo.userName, 
-            role: userInfo.role 
-        };
+        // Para admin: retornar el token JWT
+        // Para cliente: retornar TODO el objeto (clienteId, nombre, apellido, correo, etc.)
+        if (isAdmin) {
+            return { 
+                token: data.token || data.authToken
+            };
+        } else {
+            // Cliente: retornar el objeto completo
+            return data;
+        }
     } catch (error) {
         console.error('Error en login:', error);
         throw new Error("Credenciales no válidas.");
     }
 };
 
-// Función auxiliar para obtener info del usuario desde el backend
-const getUserInfoFromToken = async (token) => {
+// Función para obtener datos completos del usuario autenticado
+export const getCurrentUser = async (token, isAdmin = true) => {
     try {
-        // Llamar al endpoint /api/auth/me para obtener datos del usuario
+        // Si es cliente, el token ES el objeto de datos del cliente
+        if (!isAdmin && typeof token === 'object') {
+            return {
+                id: token.clienteId,
+                name: `${token.nombre} ${token.apellido}`,
+                email: token.correo,
+                roleName: 'CLIENTE',
+                permissions: [],
+                isActive: true
+            };
+        }
+        
+        // Si es admin, consultar endpoint /auth/me
         const res = await fetch(`${API_BASE}/auth/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (res.ok) {
-            const userData = await res.json();
-            return {
-                userId: userData.id,
-                userName: userData.nombre + ' ' + userData.apellido,
-                role: 'ADMIN' // Por ahora asumimos ADMIN, después puedes mapear rolId a nombre
-            };
-        } else {
+        if (!res.ok) {
             throw new Error('No se pudo obtener información del usuario');
         }
-    } catch (e) {
-        console.error('Error obteniendo datos del usuario:', e);
-        // Fallback: decodificar JWT básico
-        const payload = JSON.parse(atob(token.split('.')[1]));
+
+        const userData = await res.json();
+        
+        // Retornar datos estructurados del usuario admin
         return {
-            userId: 1,
-            userName: payload.sub || 'Admin',
-            role: 'ADMIN'
+            id: userData.usuario_admin_id,
+            name: `${userData.nombre} ${userData.apellido}`,
+            email: userData.correo_corporativo,
+            rolId: userData.role?.rol_id,
+            roleName: userData.role?.nombre_rol || 'UNKNOWN',
+            permissions: userData.permissions ? userData.permissions.map(p => p.nombre_permiso) : [],
+            isActive: userData.activo
         };
+    } catch (error) {
+        console.error('Error obteniendo datos del usuario:', error);
+        throw error;
     }
 };
 

@@ -6,11 +6,19 @@ import HomePage from '../pages/frontend/HomePage';
 import CatalogPage from '../pages/frontend/CatalogPage';
 import ProductDetailPage from '../pages/frontend/ProductDetailPage';
 import CartPage from '../pages/frontend/CartPage';
+import CheckoutPage from '../pages/frontend/CheckoutPage';
+import MyOrdersPage from '../pages/frontend/MyOrdersPage';
+import TrackOrderPage from '../pages/frontend/TrackOrderPage';
+import AyudaPage from '../pages/frontend/AyudaPage';
+import DevolucionesPage from '../pages/frontend/DevolucionesPage';
+import TerminosCondicionesPage from '../pages/frontend/TerminosCondicionesPage';
+import LibroReclamacionesPage from '../pages/frontend/LibroReclamacionesPage';
 import LoginClientePage from '../pages/auth/LoginClientePage';
 import RegisterClientePage from '../pages/auth/RegisterClientePage';
 import AdminLoginPage from '../pages/auth/AdminLoginPage';
+import OAuthCallbackPage from '../pages/auth/OAuthCallbackPage';
+import ClientProfilePage from '../pages/frontend/ClientProfilePage';
 import InfoPage from '../pages/frontend/InfoPage';
-import TrackingPage from '../pages/frontend/TrackingPage';
 import ProfileRouter from './ProfileRouter';
 import AdminRouter from './AdminRouter';
 import LayoutAdmin from '../components/layout/LayoutAdmin'; // Layout con Sidebar
@@ -56,14 +64,27 @@ const AppRouter = () => {
           {/* Rutas Públicas */}
           <Route path="/" element={<HomePage />} />
           <Route path="/catalogo" element={<CatalogPage />} />
-          <Route path="/producto/:sku" element={<ProductDetailPage />} />
+          <Route path="/producto/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/mis-pedidos" element={<MyOrdersPage />} />
+          <Route path="/seguimiento" element={<TrackOrderPage />} />
+          <Route path="/ayuda" element={<AyudaPage />} />
+          <Route path="/devoluciones" element={<DevolucionesPage />} />
+          <Route path="/terminos-condiciones" element={<TerminosCondicionesPage />} />
+          <Route path="/libro-reclamaciones" element={<LibroReclamacionesPage />} />
           <Route path="/info/:slug" element={<InfoPage />} /> {/* Contenido_Informativo */}
-          <Route path="/track" element={<TrackingPage />} />
 
           {/* Autenticación */}
           <Route path="/login" element={<LoginClientePage />} />
           <Route path="/register" element={<RegisterClientePage />} />
+          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+
+          {/* Perfil de Cliente (Sin protección AuthContext porque usa clientAuth) */}
+          <Route 
+            path="/cliente/perfil" 
+            element={<ClientProfilePage />} 
+          />
 
           {/* Rutas Protegidas de Perfil de Cliente (Rol: CLIENTE) */}
           <Route 
@@ -88,7 +109,7 @@ const AppRouter = () => {
             <Route 
                 path="/admin/*"
                 element={
-                    <ProtectedRoute requiredRole="ADMIN">
+                    <ProtectedRoute requiredRole={["ADMIN", "GESTOR_LOGISTICA", "GESTOR_PRODUCTOS", "GESTOR_COMERCIAL"]}>
                         <AdminRouter /> {/* Sub-Router para todas las vistas de administración */}
                     </ProtectedRoute>
                 }

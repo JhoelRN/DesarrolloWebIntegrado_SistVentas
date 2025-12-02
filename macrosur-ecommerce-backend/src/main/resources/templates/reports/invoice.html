@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Factura</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .invoice-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px;
+            display: table;
+            width: 100%;
+        }
+        
+        .company-info {
+            display: table-cell;
+            vertical-align: middle;
+            width: 60%;
+        }
+        
+        .company-logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .company-details {
+            font-size: 13px;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+        
+        .invoice-title {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: right;
+            width: 40%;
+        }
+        
+        .invoice-title h1 {
+            margin: 0;
+            font-size: 36px;
+            font-weight: bold;
+        }
+        
+        .invoice-number {
+            font-size: 18px;
+            margin-top: 10px;
+            opacity: 0.95;
+        }
+        
+        .invoice-info {
+            padding: 30px;
+            display: table;
+            width: 100%;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .customer-section {
+            display: table-cell;
+            width: 60%;
+            vertical-align: top;
+        }
+        
+        .invoice-dates {
+            display: table-cell;
+            width: 40%;
+            vertical-align: top;
+            text-align: right;
+        }
+        
+        .section-title {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .customer-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .customer-details {
+            font-size: 14px;
+            color: #495057;
+            line-height: 1.8;
+        }
+        
+        .date-item {
+            margin-bottom: 10px;
+        }
+        
+        .date-label {
+            font-size: 12px;
+            color: #6c757d;
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        .date-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .items-section {
+            padding: 30px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .items-table thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .items-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .items-table th.text-center {
+            text-align: center;
+        }
+        
+        .items-table th.text-right {
+            text-align: right;
+        }
+        
+        .items-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .items-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        .items-table td {
+            padding: 15px 12px;
+            color: #333;
+            font-size: 14px;
+            vertical-align: top;
+        }
+        
+        .item-description {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .item-details {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .totals-section {
+            padding: 0 30px 30px 30px;
+        }
+        
+        .totals-table {
+            margin-left: auto;
+            width: 350px;
+        }
+        
+        .totals-table tr {
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .totals-table td {
+            padding: 10px 0;
+            font-size: 14px;
+        }
+        
+        .totals-label {
+            color: #6c757d;
+        }
+        
+        .totals-value {
+            text-align: right;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .totals-table .subtotal-row td {
+            padding-top: 15px;
+            font-size: 14px;
+        }
+        
+        .totals-table .tax-row td {
+            color: #495057;
+        }
+        
+        .totals-table .total-row {
+            border-top: 3px solid #dc3545;
+            border-bottom: 3px solid #dc3545;
+        }
+        
+        .totals-table .total-row td {
+            padding: 15px 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .totals-table .total-row .totals-value {
+            color: #dc3545;
+            font-size: 24px;
+        }
+        
+        .payment-info {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-top: 2px solid #dee2e6;
+        }
+        
+        .payment-info-grid {
+            display: table;
+            width: 100%;
+        }
+        
+        .payment-info-item {
+            display: table-cell;
+            width: 50%;
+        }
+        
+        .payment-method {
+            display: inline-block;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid #dc3545;
+            color: #dc3545;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        
+        .payment-status {
+            text-align: right;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .notes-section {
+            padding: 20px 30px;
+            background: #fffbf0;
+            border-top: 2px solid #ffc107;
+        }
+        
+        .notes-title {
+            font-size: 13px;
+            color: #856404;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .notes-content {
+            font-size: 13px;
+            color: #495057;
+            line-height: 1.8;
+        }
+        
+        .terms-section {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 2px solid #dee2e6;
+        }
+        
+        .terms-title {
+            font-size: 13px;
+            color: #495057;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .terms-list {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.8;
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .footer {
+            background: #343a40;
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .footer-content {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .footer strong {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header no-break">
+            <div class="company-info">
+                <div class="company-logo">MACROSUR</div>
+                <div class="company-details">
+                    <strong>Macrosur E-commerce SAC</strong><br/>
+                    RUC: 20123456789<br/>
+                    Av. Principal 123, Lima, Perú<br/>
+                    Tel: +51 999 888 777<br/>
+                    Email: ventas@macrosur.com
+                </div>
+            </div>
+            <div class="invoice-title">
+                <h1>FACTURA</h1>
+                <div class="invoice-number" th:text="${invoiceNumber}">F001-00000123</div>
+            </div>
+        </div>
+        
+        <!-- Invoice Info -->
+        <div class="invoice-info no-break">
+            <div class="customer-section">
+                <div class="section-title">Facturado a:</div>
+                <div class="customer-name" th:text="${customerName}">Juan Pérez García</div>
+                <div class="customer-details">
+                    <div th:if="${customerDocument != null}">
+                        <strong>DNI/RUC:</strong> <span th:text="${customerDocument}">12345678</span>
+                    </div>
+                    <div th:if="${customerEmail != null}">
+                        <strong>Email:</strong> <span th:text="${customerEmail}">cliente@email.com</span>
+                    </div>
+                    <div th:if="${customerPhone != null}">
+                        <strong>Teléfono:</strong> <span th:text="${customerPhone}">999 888 777</span>
+                    </div>
+                    <div th:if="${customerAddress != null}">
+                        <strong>Dirección:</strong><br/>
+                        <span th:text="${customerAddress}">Av. Larco 1234, Miraflores, Lima</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="invoice-dates">
+                <div class="date-item">
+                    <span class="date-label">Fecha de Emisión:</span>
+                    <span class="date-value" th:text="${#dates.format(issueDate, 'dd/MM/yyyy')}">28/11/2025</span>
+                </div>
+                <div class="date-item">
+                    <span class="date-label">Fecha de Vencimiento:</span>
+                    <span class="date-value" th:text="${#dates.format(dueDate, 'dd/MM/yyyy')}">28/12/2025</span>
+                </div>
+                <div class="date-item" th:if="${orderNumber != null}">
+                    <span class="date-label">Pedido N°:</span>
+                    <span class="date-value" th:text="${orderNumber}">#ORD-12345</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Items Table -->
+        <div class="items-section">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">#</th>
+                        <th style="width: 45%;">Descripción</th>
+                        <th class="text-center" style="width: 12%;">Cantidad</th>
+                        <th class="text-right" style="width: 15%;">Precio Unit.</th>
+                        <th class="text-right" style="width: 20%;">Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item, iterStat : ${items}">
+                        <td class="text-center" th:text="${iterStat.index + 1}">1</td>
+                        <td>
+                            <div class="item-description" th:text="${item.description}">Laptop HP Pavilion 15</div>
+                            <div class="item-details" th:if="${item.details != null}" th:text="${item.details}">
+                                Intel Core i5, 8GB RAM, 256GB SSD
+                            </div>
+                            <div class="item-details" th:if="${item.sku != null}">
+                                SKU: <span th:text="${item.sku}">LAP-HP-001</span>
+                            </div>
+                        </td>
+                        <td class="text-center" th:text="${item.quantity}">1</td>
+                        <td class="text-right" th:text="'$ ' + ${#numbers.formatDecimal(item.unitPrice, 1, 'POINT', 2, 'COMMA')}">$ 2,499.00</td>
+                        <td class="text-right" th:text="'$ ' + ${#numbers.formatDecimal(item.subtotal, 1, 'POINT', 2, 'COMMA')}">$ 2,499.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Totals -->
+        <div class="totals-section no-break">
+            <table class="totals-table">
+                <tr class="subtotal-row">
+                    <td class="totals-label">Subtotal:</td>
+                    <td class="totals-value" th:text="'$ ' + ${#numbers.formatDecimal(subtotal, 1, 'POINT', 2, 'COMMA')}">$ 3,200.00</td>
+                </tr>
+                <tr th:if="${discount != null and discount > 0}">
+                    <td class="totals-label">Descuento:</td>
+                    <td class="totals-value" style="color: #28a745;" th:text="'-$ ' + ${#numbers.formatDecimal(discount, 1, 'POINT', 2, 'COMMA')}">-$ 160.00</td>
+                </tr>
+                <tr th:if="${shipping != null and shipping > 0}">
+                    <td class="totals-label">Envío:</td>
+                    <td class="totals-value" th:text="'$ ' + ${#numbers.formatDecimal(shipping, 1, 'POINT', 2, 'COMMA')}">$ 20.00</td>
+                </tr>
+                <tr class="tax-row">
+                    <td class="totals-label">
+                        IGV (18%):
+                    </td>
+                    <td class="totals-value" th:text="'$ ' + ${#numbers.formatDecimal(igv, 1, 'POINT', 2, 'COMMA')}">$ 550.80</td>
+                </tr>
+                <tr class="total-row">
+                    <td class="totals-label">TOTAL:</td>
+                    <td class="totals-value" th:text="'$ ' + ${#numbers.formatDecimal(total, 1, 'POINT', 2, 'COMMA')}">$ 3,610.80</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Payment Info -->
+        <div class="payment-info no-break">
+            <div class="payment-info-grid">
+                <div class="payment-info-item">
+                    <div class="section-title">Método de Pago:</div>
+                    <span class="payment-method" th:text="${paymentMethod}">Tarjeta de Crédito</span>
+                </div>
+                <div class="payment-info-item payment-status">
+                    <div class="section-title">Estado:</div>
+                    <span class="status-badge" 
+                          th:classappend="${paymentStatus == 'PAGADO' or paymentStatus == 'PAID'} ? 'status-paid' : 'status-pending'"
+                          th:text="${paymentStatus}">PAGADO</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notes (if any) -->
+        <div class="notes-section no-break" th:if="${notes != null and !notes.isEmpty()}">
+            <div class="notes-title">📝 Notas:</div>
+            <div class="notes-content" th:text="${notes}">
+                Gracias por su compra. Su pedido será procesado en 24-48 horas.
+            </div>
+        </div>
+        
+        <!-- Terms and Conditions -->
+        <div class="terms-section no-break">
+            <div class="terms-title">Términos y Condiciones:</div>
+            <ul class="terms-list">
+                <li>Esta factura es válida como comprobante de pago electrónico</li>
+                <li>Los productos tienen garantía según las condiciones del fabricante</li>
+                <li>El plazo de entrega es de 3-5 días hábiles dentro de Lima</li>
+                <li>Para devoluciones, contactar dentro de los 7 días de recibido el producto</li>
+                <li>Para consultas, escribir a soporte@macrosur.com o llamar al +51 999 888 777</li>
+            </ul>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-content">
+                <strong>Macrosur E-commerce SAC</strong>
+                RUC: 20123456789 | www.macrosur.com<br/>
+                Este documento tiene validez legal según normativa SUNAT<br/>
+                Representación impresa de factura electrónica
+            </div>
+        </div>
+    </div>
+</body>
+</html>

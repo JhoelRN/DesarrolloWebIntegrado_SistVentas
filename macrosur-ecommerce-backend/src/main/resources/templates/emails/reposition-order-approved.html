@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Orden de Reposición Aprobada</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="650" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); padding: 40px 30px; text-align: center; color: white;">
+                            <h1 style="margin: 0; font-size: 28px;">✓ Orden de Compra Aprobada</h1>
+                            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Solicitud de reposición de inventario</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="font-size: 16px; color: #333; margin: 0 0 20px 0;">
+                                Estimado/a Proveedor <strong th:text="${supplierName}">Proveedor</strong>,
+                            </p>
+                            <p style="font-size: 14px; color: #666; line-height: 1.6; margin: 0 0 25px 0;">
+                                Se ha aprobado una nueva orden de reposición. A continuación encontrará los detalles 
+                                completos del pedido y las instrucciones de entrega.
+                            </p>
+
+                            <!-- Order Info -->
+                            <table width="100%" cellpadding="15" style="background-color: #d4edda; border-radius: 8px; margin: 25px 0; border: 2px solid #28a745;">
+                                <tr>
+                                    <td style="width: 50%;">
+                                        <strong style="color: #155724; font-size: 13px;">Número de Orden</strong><br/>
+                                        <span style="font-size: 22px; color: #28a745; font-weight: bold;" th:text="${orderId}">#ORD-12345</span>
+                                    </td>
+                                    <td align="right" style="width: 50%;">
+                                        <strong style="color: #155724; font-size: 13px;">Fecha de Aprobación</strong><br/>
+                                        <span style="font-size: 16px; color: #333;" th:text="${#dates.format(approvalDate, 'dd/MM/yyyy')}">28/11/2025</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Delivery Requirements -->
+                            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 4px; margin: 25px 0;">
+                                <h4 style="margin: 0 0 15px 0; color: #856404; font-size: 16px;">📅 Requisitos de Entrega</h4>
+                                <table width="100%">
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #856404;"><strong>Fecha Esperada:</strong></td>
+                                        <td align="right" style="padding: 5px 0; color: #333;" 
+                                            th:text="${#dates.format(expectedDate, 'dd/MM/yyyy')}">05/12/2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #856404;"><strong>Ubicación:</strong></td>
+                                        <td align="right" style="padding: 5px 0; color: #333;" th:text="${deliveryLocation}">Almacén Principal</td>
+                                    </tr>
+                                    <tr th:if="${contactPerson != null}">
+                                        <td style="padding: 5px 0; color: #856404;"><strong>Contacto:</strong></td>
+                                        <td align="right" style="padding: 5px 0; color: #333;" th:text="${contactPerson}">Juan Pérez</td>
+                                    </tr>
+                                    <tr th:if="${contactPhone != null}">
+                                        <td style="padding: 5px 0; color: #856404;"><strong>Teléfono:</strong></td>
+                                        <td align="right" style="padding: 5px 0; color: #333;" th:text="${contactPhone}">+51 999 888 777</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Items Table -->
+                            <h3 style="color: #333; margin: 30px 0 15px 0; font-size: 18px;">Detalle de Productos</h3>
+                            <table width="100%" cellpadding="12" style="border-collapse: collapse; border: 1px solid #dee2e6;">
+                                <thead>
+                                    <tr style="background-color: #f8f9fa;">
+                                        <th align="left" style="padding: 12px; color: #495057; font-size: 12px; border-bottom: 2px solid #dee2e6;">Producto</th>
+                                        <th align="center" style="padding: 12px; color: #495057; font-size: 12px; border-bottom: 2px solid #dee2e6;">Cantidad</th>
+                                        <th align="right" style="padding: 12px; color: #495057; font-size: 12px; border-bottom: 2px solid #dee2e6;">Precio Unit.</th>
+                                        <th align="right" style="padding: 12px; color: #495057; font-size: 12px; border-bottom: 2px solid #dee2e6;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${items}" style="border-bottom: 1px solid #dee2e6;">
+                                        <td style="padding: 12px;">
+                                            <strong th:text="${item.productName}" style="color: #333;">Producto</strong>
+                                            <br/>
+                                            <small style="color: #6c757d;">SKU: <span th:text="${item.sku}">SKU-001</span></small>
+                                        </td>
+                                        <td align="center" style="padding: 12px;">
+                                            <strong th:text="${item.quantity}" style="font-size: 16px;">100</strong>
+                                        </td>
+                                        <td align="right" style="padding: 12px; color: #6c757d;" th:text="'$ ' + ${item.unitPrice}">$ 10.00</td>
+                                        <td align="right" style="padding: 12px;">
+                                            <strong th:text="'$ ' + ${item.subtotal}" style="color: #28a745;">$ 1,000.00</strong>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background-color: #f8f9fa; border-top: 2px solid #dee2e6;">
+                                        <td colspan="3" align="right" style="padding: 15px; font-size: 18px;"><strong>Total:</strong></td>
+                                        <td align="right" style="padding: 15px; font-size: 20px; color: #28a745;">
+                                            <strong th:text="'$ ' + ${totalAmount}">$ 5,000.00</strong>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <!-- Delivery Address -->
+                            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 25px 0;">
+                                <h4 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">📍 Dirección de Entrega</h4>
+                                <p style="margin: 0; color: #495057; line-height: 1.6;" th:text="${deliveryAddress}">
+                                    Av. Industrial 456, Parque Industrial<br/>
+                                    Lima, Perú<br/>
+                                    Referencia: Puerta 3, Almacén B
+                                </p>
+                            </div>
+
+                            <!-- Special Instructions -->
+                            <div th:if="${specialInstructions != null}" 
+                                 style="background-color: #e7f3ff; border-left: 4px solid #0d6efd; padding: 20px; border-radius: 4px; margin: 25px 0;">
+                                <h4 style="margin: 0 0 10px 0; color: #084298; font-size: 16px;">📝 Instrucciones Especiales</h4>
+                                <p style="margin: 0; color: #084298; line-height: 1.6; font-size: 14px;" th:text="${specialInstructions}">
+                                    Por favor coordinar la entrega con 24 horas de anticipación.
+                                </p>
+                            </div>
+
+                            <!-- Payment Terms -->
+                            <div style="border: 2px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                                <h4 style="margin: 0 0 15px 0; color: #333; font-size: 16px;">💳 Condiciones de Pago</h4>
+                                <table width="100%">
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #6c757d;">Método de Pago:</td>
+                                        <td align="right" style="padding: 5px 0;">
+                                            <strong th:text="${paymentMethod}" style="color: #333;">Transferencia Bancaria</strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 5px 0; color: #6c757d;">Plazo de Pago:</td>
+                                        <td align="right" style="padding: 5px 0;">
+                                            <strong th:text="${paymentTerms}" style="color: #333;">30 días</strong>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Next Steps -->
+                            <div style="background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; border-radius: 4px; margin: 25px 0;">
+                                <h4 style="margin: 0 0 15px 0; color: #155724; font-size: 16px;">✓ Próximos Pasos</h4>
+                                <ol style="margin: 0; padding-left: 20px; color: #155724; font-size: 13px; line-height: 1.8;">
+                                    <li>Confirmar recepción de esta orden por email</li>
+                                    <li>Preparar los productos según especificaciones</li>
+                                    <li>Coordinar fecha y hora de entrega</li>
+                                    <li>Incluir factura y guía de remisión en la entrega</li>
+                                    <li>Notificar al contacto al momento de la entrega</li>
+                                </ol>
+                            </div>
+
+                            <!-- CTA Buttons -->
+                            <div align="center" style="margin: 35px 0;">
+                                <table cellpadding="5" cellspacing="0">
+                                    <tr>
+                                        <td style="padding: 5px;">
+                                            <a th:href="${confirmUrl}" 
+                                               style="display: inline-block; padding: 16px 35px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 15px;">
+                                                Confirmar Recepción
+                                            </a>
+                                        </td>
+                                        <td style="padding: 5px;">
+                                            <a th:href="${downloadUrl}" 
+                                               style="display: inline-block; padding: 16px 35px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 15px;">
+                                                Descargar PDF
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Contact -->
+                            <div style="text-align: center; margin: 30px 0 0 0; padding-top: 25px; border-top: 1px solid #dee2e6;">
+                                <p style="font-size: 13px; color: #6c757d; margin: 0 0 5px 0;">
+                                    Para consultas sobre esta orden, contactar a:
+                                </p>
+                                <p style="font-size: 14px; margin: 5px 0;">
+                                    <strong style="color: #333;">Departamento de Compras</strong><br/>
+                                    <a href="mailto:compras@macrosur.com" style="color: #28a745; text-decoration: none;">
+                                        compras@macrosur.com
+                                    </a>
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; color: #6c757d; font-size: 12px;">
+                            <p style="margin: 0 0 10px 0;"><strong>Macrosur - Sistema de Compras</strong></p>
+                            <p style="margin: 0 0 5px 0;">Av. Principal 123, Lima, Perú</p>
+                            <p style="margin: 10px 0 0 0; font-size: 11px; color: #999;">
+                                Este es un documento oficial. Conservar para registros.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
