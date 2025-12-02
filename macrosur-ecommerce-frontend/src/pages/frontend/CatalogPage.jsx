@@ -278,4 +278,4 @@ const CatalogPage = () => {
     );
 };
 
-export default CatalogoPage;
+export default CatalogPage;

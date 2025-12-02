@@ -226,21 +226,22 @@ const ProductsPage = () => {
       
       // Limpiar datos antes de enviar: convertir strings vacíos a null y strings a números
       const payload = {
-        codigoProducto: formData.codigoProducto || null,
-        nombreProducto: formData.nombreProducto,
-        descripcionCorta: formData.descripcionCorta || null,
+        codigoProducto: formData.codigoProducto?.trim() || null,
+        nombreProducto: formData.nombreProducto?.trim(),
+        descripcionCorta: formData.descripcionCorta?.trim() || null,
         fichaTecnicaHtml: formData.fichaTecnicaHtml || null,
         precioUnitario: parseFloat(formData.precioUnitario),
         pesoKg: parseFloat(formData.pesoKg),
         volumenM3: formData.volumenM3 ? parseFloat(formData.volumenM3) : null,
-        imagenUrl: formData.imagenUrl || null,
-        categoriasIds: formData.categoriasIds,
+        imagenUrl: formData.imagenUrl?.trim() || null,
+        categoriasIds: formData.categoriasIds && formData.categoriasIds.length > 0 ? formData.categoriasIds : [],
         activo: formData.activo
       };
       
-      console.log('📦 Enviando payload:', payload);
+      console.log('📦 Enviando payload:', JSON.stringify(payload, null, 2));
       console.log('🔧 Modo:', modalMode);
       console.log('🆔 Producto ID:', selectedProducto?.productoId);
+      console.log('🏷️ Categorías seleccionadas:', payload.categoriasIds);
       
       if (modalMode === 'create') {
         console.log('➕ Creando nuevo producto...');
@@ -263,7 +264,32 @@ const ProductsPage = () => {
         response: err.response?.data,
         status: err.response?.status
       });
-      setFormErrors({ submit: err.response?.data?.error || err.response?.data?.message || err.message });
+      
+      // Extraer mensaje de error más detallado
+      let errorMessage = 'Error al procesar la solicitud';
+      
+      if (err.response?.data) {
+        const responseData = err.response.data;
+        
+        // Si es un objeto con error o message
+        if (responseData.error) {
+          errorMessage = responseData.error;
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        } 
+        // Si hay errores de validación (Spring Boot validation)
+        else if (responseData.errors && Array.isArray(responseData.errors)) {
+          errorMessage = responseData.errors.join(', ');
+        }
+        // Si es un string directo
+        else if (typeof responseData === 'string') {
+          errorMessage = responseData;
+        }
+      } else {
+        errorMessage = err.message;
+      }
+      
+      setFormErrors({ submit: errorMessage });
     } finally {
       setSubmitting(false);
     }

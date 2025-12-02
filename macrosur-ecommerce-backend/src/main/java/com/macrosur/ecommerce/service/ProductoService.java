@@ -527,8 +527,17 @@ public class ProductoService {
         variante.setPrecioBase(producto.getPrecioUnitario() != null ? producto.getPrecioUnitario() : BigDecimal.ZERO);
         variante.setUrlImagenPrincipal(producto.getImagenUrl());
         
-        varianteProductoRepository.save(variante);
-        // El listener VarianteProductoListener creará automáticamente el inventario
+        // Guardar la variante primero para que obtenga su ID
+        VarianteProducto varianteGuardada = varianteProductoRepository.save(variante);
+        
+        // Ahora crear el inventario automáticamente (ya tiene ID)
+        try {
+            crearInventarioAutomaticoParaVariante(varianteGuardada);
+        } catch (Exception e) {
+            // Log pero no fallar - el inventario se puede crear después manualmente
+            System.err.println("Advertencia: No se pudo crear inventario automático para variante " + 
+                varianteGuardada.getSku() + ": " + e.getMessage());
+        }
     }
     
     /**

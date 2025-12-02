@@ -88,6 +88,7 @@ export const obtenerProductosRelacionados = async (id, limit = 6) => {
  */
 export const crearProducto = async (productoData) => {
   try {
+    console.log('🚀 Enviando datos de creación:', JSON.stringify(productoData, null, 2));
     const response = await axios.post(API_URL, productoData, {
       headers: {
         ...getAuthHeader(),
@@ -97,6 +98,9 @@ export const crearProducto = async (productoData) => {
     return response.data;
   } catch (error) {
     console.error('Error al crear producto:', error);
+    console.error('📛 Response data:', error.response?.data);
+    console.error('📛 Response status:', error.response?.status);
+    console.error('📛 Response headers:', error.response?.headers);
     throw error;
   }
 };

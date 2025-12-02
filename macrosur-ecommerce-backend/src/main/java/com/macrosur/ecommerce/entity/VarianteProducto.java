@@ -1,6 +1,5 @@
 package com.macrosur.ecommerce.entity;
 
-import com.macrosur.ecommerce.listener.VarianteProductoListener;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +9,6 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "variantes_producto")
-@EntityListeners(VarianteProductoListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
