@@ -47,10 +47,10 @@ const ProductCard = ({ product }) => {
                 )}
                 <div className="mt-auto">
                     <div className="d-flex align-items-baseline mb-2">
-                        <span className="fs-5 fw-bold text-danger me-2">S/ {product.price.toFixed(2)}</span>
+                        <span className="fs-5 fw-bold text-danger me-2">${product.price.toFixed(2)}</span>
                         {product.oldPrice && (
                             <span className="text-muted text-decoration-line-through small">
-                                S/ {product.oldPrice.toFixed(2)}
+                                ${product.oldPrice.toFixed(2)}
                             </span>
                         )}
                     </div>

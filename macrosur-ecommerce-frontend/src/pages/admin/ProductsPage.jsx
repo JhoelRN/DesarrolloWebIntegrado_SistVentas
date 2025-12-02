@@ -427,7 +427,7 @@ const ProductsPage = () => {
                     </td>
                     <td>{prod.codigoProducto || '-'}</td>
                     <td><strong>{prod.nombreProducto}</strong></td>
-                    <td>S/ {parseFloat(prod.precioUnitario).toFixed(2)}</td>
+                    <td>${parseFloat(prod.precioUnitario).toFixed(2)}</td>
                     <td>{parseFloat(prod.pesoKg).toFixed(2)}</td>
                     <td>
                       <small>{prod.categoriasNombres || '-'}</small>
@@ -554,7 +554,7 @@ const ProductsPage = () => {
             <Row>
               <Col md={4}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Precio Unitario (S/) *</Form.Label>
+                  <Form.Label>Precio Unitario ($) *</Form.Label>
                   <Form.Control type="number" step="0.01" value={formData.precioUnitario}
                     onChange={(e) => setFormData({ ...formData, precioUnitario: e.target.value })}
                     isInvalid={!!formErrors.precioUnitario} />

@@ -63,7 +63,7 @@
                                         </td>
                                         <td align="center" style="padding: 12px;" th:text="${item.quantity}">1</td>
                                         <td align="right" style="padding: 12px;">
-                                            <strong th:text="'S/ ' + ${item.price}" style="color: #dc3545;">S/ 0.00</strong>
+                                            <strong th:text="'$ ' + ${item.price}" style="color: #dc3545;">$ 0.00</strong>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -76,16 +76,16 @@
                                         <table align="right" style="min-width: 250px;">
                                             <tr>
                                                 <td style="padding: 8px; color: #666;">Subtotal:</td>
-                                                <td align="right" style="padding: 8px;" th:text="'S/ ' + ${subtotal}">S/ 0.00</td>
+                                                <td align="right" style="padding: 8px;" th:text="'$ ' + ${subtotal}">$ 0.00</td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 8px; color: #666;">Envío:</td>
-                                                <td align="right" style="padding: 8px;" th:text="'S/ ' + ${shipping}">S/ 0.00</td>
+                                                <td align="right" style="padding: 8px;" th:text="'$ ' + ${shipping}">$ 0.00</td>
                                             </tr>
                                             <tr style="border-top: 2px solid #dee2e6;">
                                                 <td style="padding: 12px 8px; font-size: 18px;"><strong>Total:</strong></td>
                                                 <td align="right" style="padding: 12px 8px; font-size: 18px; color: #dc3545;">
-                                                    <strong th:text="'S/ ' + ${total}">S/ 0.00</strong>
+                                                    <strong th:text="'$ ' + ${total}">$ 0.00</strong>
                                                 </td>
                                             </tr>
                                         </table>

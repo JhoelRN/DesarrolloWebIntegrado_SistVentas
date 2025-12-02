@@ -8,6 +8,11 @@ import ProductDetailPage from '../pages/frontend/ProductDetailPage';
 import CartPage from '../pages/frontend/CartPage';
 import CheckoutPage from '../pages/frontend/CheckoutPage';
 import MyOrdersPage from '../pages/frontend/MyOrdersPage';
+import TrackOrderPage from '../pages/frontend/TrackOrderPage';
+import AyudaPage from '../pages/frontend/AyudaPage';
+import DevolucionesPage from '../pages/frontend/DevolucionesPage';
+import TerminosCondicionesPage from '../pages/frontend/TerminosCondicionesPage';
+import LibroReclamacionesPage from '../pages/frontend/LibroReclamacionesPage';
 import LoginClientePage from '../pages/auth/LoginClientePage';
 import RegisterClientePage from '../pages/auth/RegisterClientePage';
 import AdminLoginPage from '../pages/auth/AdminLoginPage';
@@ -63,6 +68,11 @@ const AppRouter = () => {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/mis-pedidos" element={<MyOrdersPage />} />
+          <Route path="/seguimiento" element={<TrackOrderPage />} />
+          <Route path="/ayuda" element={<AyudaPage />} />
+          <Route path="/devoluciones" element={<DevolucionesPage />} />
+          <Route path="/terminos-condiciones" element={<TerminosCondicionesPage />} />
+          <Route path="/libro-reclamaciones" element={<LibroReclamacionesPage />} />
           <Route path="/info/:slug" element={<InfoPage />} /> {/* Contenido_Informativo */}
 
           {/* Autenticación */}

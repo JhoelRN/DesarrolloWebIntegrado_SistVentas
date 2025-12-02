@@ -375,7 +375,7 @@
     <!-- Summary Cards -->
     <div class="summary-cards">
         <div class="summary-card card-revenue">
-            <h3 th:text="'S/ ' + ${#numbers.formatDecimal(totalRevenue, 1, 'POINT', 2, 'COMMA')}">S/ 125,450.00</h3>
+            <h3 th:text="'$ ' + ${#numbers.formatDecimal(totalRevenue, 1, 'POINT', 2, 'COMMA')}">$ 125,450.00</h3>
             <p>Ingresos Totales</p>
         </div>
         <div class="summary-card card-orders">
@@ -383,7 +383,7 @@
             <p>Pedidos Realizados</p>
         </div>
         <div class="summary-card card-average">
-            <h3 th:text="'S/ ' + ${#numbers.formatDecimal(averageOrderValue, 1, 'POINT', 2, 'COMMA')}">S/ 367.00</h3>
+            <h3 th:text="'$ ' + ${#numbers.formatDecimal(averageOrderValue, 1, 'POINT', 2, 'COMMA')}">$ 367.00</h3>
             <p>Ticket Promedio</p>
         </div>
         <div class="summary-card card-products">
@@ -441,7 +441,7 @@
                 </td>
                 <td style="text-align: center; font-weight: bold;" th:text="${product.quantitySold}">125</td>
                 <td style="text-align: right;">
-                    <span class="revenue-amount" th:text="'S/ ' + ${#numbers.formatDecimal(product.revenue, 1, 'POINT', 2, 'COMMA')}">S/ 45,250.00</span>
+                    <span class="revenue-amount" th:text="'$ ' + ${#numbers.formatDecimal(product.revenue, 1, 'POINT', 2, 'COMMA')}">$ 45,250.00</span>
                 </td>
                 <td style="text-align: center; color: #6c757d;" th:text="${#numbers.formatDecimal(product.percentageOfTotal, 1, 2)} + '%'">36.1%</td>
             </tr>
@@ -457,7 +457,7 @@
         <div class="payment-card" th:each="payment : ${paymentMethods}">
             <div class="payment-icon" th:text="${payment.icon}">💳</div>
             <div class="payment-name" th:text="${payment.name}">Tarjeta de Crédito</div>
-            <div class="payment-amount" th:text="'S/ ' + ${#numbers.formatDecimal(payment.amount, 1, 'POINT', 2, 'COMMA')}">S/ 65,250.00</div>
+            <div class="payment-amount" th:text="'$ ' + ${#numbers.formatDecimal(payment.amount, 1, 'POINT', 2, 'COMMA')}">$ 65,250.00</div>
             <div class="payment-percentage" th:text="${#numbers.formatDecimal(payment.percentage, 1, 1)} + '%'">52.0%</div>
         </div>
     </div>
@@ -467,8 +467,8 @@
         <div class="chart-title">📦 Ventas por Categoría</div>
         <div class="bar-chart">
             <div class="bar-item" th:each="category : ${salesByCategory}">
-                <span class="bar-label" th:text="${category.name + ' (S/ ' + #numbers.formatDecimal(category.amount, 1, 'POINT', 2, 'COMMA') + ')'}">
-                    Electrónica (S/ 55,280.00)
+                <span class="bar-label" th:text="${category.name + ' ($ ' + #numbers.formatDecimal(category.amount, 1, 'POINT', 2, 'COMMA') + ')'}">
+                    Electrónica ($ 55,280.00)
                 </span>
                 <div class="bar-container">
                     <div class="bar-fill" th:style="'width: ' + ${category.percentage} + '%'" 
@@ -485,13 +485,13 @@
         <div class="chart-title">📈 Tendencia de Ventas Diarias</div>
         <div class="bar-chart">
             <div class="bar-item" th:each="daily : ${dailySales}" th:if="${dailyStat.index < 10}">
-                <span class="bar-label" th:text="${#dates.format(daily.date, 'dd/MM')} + ' - S/ ' + ${#numbers.formatDecimal(daily.amount, 1, 'POINT', 2, 'COMMA')}">
-                    01/11 - S/ 4,250.00
+                <span class="bar-label" th:text="${#dates.format(daily.date, 'dd/MM')} + ' - $ ' + ${#numbers.formatDecimal(daily.amount, 1, 'POINT', 2, 'COMMA')}">
+                    01/11 - $ 4,250.00
                 </span>
                 <div class="bar-container">
                     <div class="bar-fill" th:style="'width: ' + ${(daily.amount / maxDailyAmount) * 100} + '%'"
-                         th:text="'S/ ' + ${#numbers.formatDecimal(daily.amount, 1, 2)}">
-                        S/ 4,250.00
+                         th:text="'$ ' + ${#numbers.formatDecimal(daily.amount, 1, 2)}">
+                        $ 4,250.00
                     </div>
                 </div>
             </div>

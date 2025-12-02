@@ -8,7 +8,7 @@ import PromotionBanner from '../../components/promotions/PromotionBanner';
 import * as productsApi from '../../api/products'; 
 
 const HomePage = () => {
-    const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
 
     useEffect(() => {
         // Cargar productos destacados y en promoción
@@ -41,7 +41,7 @@ const HomePage = () => {
                             <Card.Body>
                                 <i className="bi bi-truck display-4 text-primary"></i>
                                 <Card.Title className="mt-3">Envío Gratis</Card.Title>
-                                <Card.Text className="small text-muted">En compras mayores a S/ 150 en Lima Metropolitana</Card.Text>
+                                <Card.Text className="small text-muted">En compras mayores a $150</Card.Text>
                             </Card.Body>
                         </Card>
                     </Col>

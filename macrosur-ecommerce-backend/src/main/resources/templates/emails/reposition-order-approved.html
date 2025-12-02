@@ -89,9 +89,9 @@
                                         <td align="center" style="padding: 12px;">
                                             <strong th:text="${item.quantity}" style="font-size: 16px;">100</strong>
                                         </td>
-                                        <td align="right" style="padding: 12px; color: #6c757d;" th:text="'S/ ' + ${item.unitPrice}">S/ 10.00</td>
+                                        <td align="right" style="padding: 12px; color: #6c757d;" th:text="'$ ' + ${item.unitPrice}">$ 10.00</td>
                                         <td align="right" style="padding: 12px;">
-                                            <strong th:text="'S/ ' + ${item.subtotal}" style="color: #28a745;">S/ 1,000.00</strong>
+                                            <strong th:text="'$ ' + ${item.subtotal}" style="color: #28a745;">$ 1,000.00</strong>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -99,7 +99,7 @@
                                     <tr style="background-color: #f8f9fa; border-top: 2px solid #dee2e6;">
                                         <td colspan="3" align="right" style="padding: 15px; font-size: 18px;"><strong>Total:</strong></td>
                                         <td align="right" style="padding: 15px; font-size: 20px; color: #28a745;">
-                                            <strong th:text="'S/ ' + ${totalAmount}">S/ 5,000.00</strong>
+                                            <strong th:text="'$ ' + ${totalAmount}">$ 5,000.00</strong>
                                         </td>
                                     </tr>
                                 </tfoot>
