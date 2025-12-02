@@ -1,10 +1,11 @@
 # 🛒 Sistema de Ventas E- COMMERCE (MACRO-SUR) – Proyecto Integrador  
 **Curso:** Desarrollo Web Integrado  
 **Grupo:** 
-Rodrigo Martinez Quispe
-Jhoel René Mamani Huanca 
-Adrian Huerta Tejada
----
+- Rodrigo Martinez Quispe
+- Jhoel René Mamani Huanca 
+- Adrian Huerta Tejada
+
+
 
 ## 1. Descripción General
 Este proyecto implementa un **Sistema de Ventas (E-commerce)** desarrollado como parte del curso *Desarrollo Web Integrado*.  
