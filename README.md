@@ -1,7 +1,9 @@
-# 🛒 Sistema de Ventas – Proyecto Integrador  
-**Curso:** Desarrollo Web Integrado – UTP  
-**Autor:** Jhoel René Mamani Huanca  
-
+# 🛒 Sistema de Ventas E- COMMERCE (MACRO-SUR) – Proyecto Integrador  
+**Curso:** Desarrollo Web Integrado  
+**Grupo:** 
+Rodrigo Martinez Quispe
+Jhoel René Mamani Huanca 
+Adrian Huerta Tejada
 ---
 
 ## 1. Descripción General
