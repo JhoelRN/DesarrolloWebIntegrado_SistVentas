@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Navbar, Nav, Container, Form, Button, InputGroup, Dropdown } from 'react-bootstrap';
+import {
+  Navbar,
+  Nav,
+  Container,
+  Form,
+  Button,
+  InputGroup,
+  Dropdown,
+  Badge,
+} from 'react-bootstrap';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import * as categoriasApi from '../../api/categorias';

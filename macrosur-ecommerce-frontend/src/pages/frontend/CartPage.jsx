@@ -1,3 +1,4 @@
+// src/pages/CartPage.jsx
 import React from 'react';
 import { Container, Row, Col, Table, Button, Card, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';

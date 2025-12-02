@@ -8,7 +8,7 @@ import PromotionBanner from '../../components/promotions/PromotionBanner';
 import * as productsApi from '../../api/products'; 
 
 const HomePage = () => {
-    const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
 
     useEffect(() => {
         // Cargar productos destacados y en promoción
